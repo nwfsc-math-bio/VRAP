@@ -1,32 +1,32 @@
 Main2 = function(InFile=NULL, OutFileBase=NULL){
   require(stringr)
-# Enable just in time compile
-#   require(compiler)
-#   enableJIT(3)
+Enable just in time compile
+  require(compiler)
+  enableJIT(3)
   
-#   #if not called with input file, then user is prompted to input one
-#   if(is.null(InFile)) InFile = file.choose()
-#   if(!file.exists(InFile)) stop("Specified input file does not exist.")
-#   if(is.null(OutFileBase)){
-#     tmp=strsplit(InFile,"\\\\")[[1]]
-#     InFileBase=tmp[length(tmp)]
-#     tmp=strsplit(InFileBase,"/")[[1]]
-#     InFileBase=tmp[length(tmp)]   
-#     if(str_detect(InFileBase,"[.]")){
-#       OutFileBase=strsplit(InFileBase,"[.]")[[1]][1]; 
-#     }else{
-#       OutFileBase=InFileBase;
-#     }
-#   }
-#   
-#   
-# #Two lists will be passed in and out of functions
-# #   inputs = list() #is everything from the .rav file
-# #   staticvars = list() #is anything computed from that; static
-#   
-#   #'READ INPUT DATA AND CALCULATE AEQs
-#   #'direct from .rav file or simple calculation from rav file inputs
-#   inputs=GetInput(InFile)
+  #if not called with input file, then user is prompted to input one
+  if(is.null(InFile)) InFile = file.choose()
+  if(!file.exists(InFile)) stop("Specified input file does not exist.")
+  if(is.null(OutFileBase)){
+    tmp=strsplit(InFile,"\\\\")[[1]]
+    InFileBase=tmp[length(tmp)]
+    tmp=strsplit(InFileBase,"/")[[1]]
+    InFileBase=tmp[length(tmp)]   
+    if(str_detect(InFileBase,"[.]")){
+      OutFileBase=strsplit(InFileBase,"[.]")[[1]][1]; 
+    }else{
+      OutFileBase=InFileBase;
+    }
+  }
+  
+  
+#Two lists will be passed in and out of functions
+#   inputs = list() #is everything from the .rav file
+#   staticvars = list() #is anything computed from that; static
+  
+  #'READ INPUT DATA AND CALCULATE AEQs
+  #'direct from .rav file or simple calculation from rav file inputs
+  inputs=GetInput(InFile)
 #   #add the output file names to the inputs
 #   inputs = SetOutFileNames(OutFileBase, inputs)
 #   

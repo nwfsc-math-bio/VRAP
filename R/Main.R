@@ -154,5 +154,5 @@ Main = function(InFile=NULL, OutFileBase=NULL){
   cat("Saving BYr year data...\n")
   SaveBYrData(inputs, SummaryStats)
 
-  invisible(list(inputs=inputs, SummaryStats=SummaryStats, staticvars=staticvars))
+  return(list(inputs=inputs, SummaryStats=SummaryStats, staticvars=staticvars))
 }

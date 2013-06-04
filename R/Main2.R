@@ -1,8 +1,5 @@
 Main2 = function(InFile=NULL, OutFileBase=NULL){
   require(stringr)
-Enable just in time compile
-  require(compiler)
-  enableJIT(3)
   
   #if not called with input file, then user is prompted to input one
   if(is.null(InFile)) InFile = file.choose()

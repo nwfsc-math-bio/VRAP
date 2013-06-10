@@ -1,4 +1,4 @@
-Main = function(InFile=NULL, OutFileBase=NULL){
+Main = function(InFile=NULL, OutFileBase=NULL, NRuns=-1){
   require(stringr)
 # Enable just in time compile
 #   require(compiler)
@@ -27,6 +27,9 @@ Main = function(InFile=NULL, OutFileBase=NULL){
   #'READ INPUT DATA AND CALCULATE AEQs
   #'direct from .rav file or simple calculation from rav file inputs
   inputs=GetInput(InFile)
+  
+  if(NRuns>0) inputs$NRuns=NRuns;
+  
   #add the output file names to the inputs
   inputs = SetOutFileNames(OutFileBase, inputs)
   
@@ -154,5 +157,5 @@ Main = function(InFile=NULL, OutFileBase=NULL){
   cat("Saving BYr year data...\n")
   SaveBYrData(inputs, SummaryStats)
 
-  return(inputs)
+  return(list(inputs=inputs, SummaryStats=SummaryStats, staticvars=staticvars))
 }

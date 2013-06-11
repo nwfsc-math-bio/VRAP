@@ -42,7 +42,7 @@ Main = function(InFile=NULL, OutFileBase=NULL, NRuns=-1){
   #'COMPUTE FACTOR TO TRANSLATE AEQ RECRUITMENT TO AGE 1
   staticvars$RecruitsAtAge1 = Recruits(inputs)
 
-  
+  ptm <- proc.time()
   #'----------------- PROGRAM EXECUTION SECTION ----------------------------------
   
   Buffer = inputs$BufferStart
@@ -141,6 +141,8 @@ Main = function(InFile=NULL, OutFileBase=NULL, NRuns=-1){
     Buffer = Buffer + inputs$BufferStep
   } #for loop for BufNum
   
+  comp.time = proc.time() - ptm
+  
   # #'COMPUTE STATISTICS
   # cat("Computing and saving statistics...")
   # CompStats(inputs$BufMax, inputs, BufSRb)
@@ -157,5 +159,5 @@ Main = function(InFile=NULL, OutFileBase=NULL, NRuns=-1){
   cat("Saving BYr year data...\n")
   SaveBYrData(inputs, SummaryStats)
 
-  return(list(inputs=inputs, SummaryStats=SummaryStats, staticvars=staticvars))
+  return(list(inputs=inputs, SummaryStats=SummaryStats, staticvars=staticvars, time=comp.time))
 }

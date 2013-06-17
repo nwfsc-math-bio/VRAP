@@ -33,7 +33,7 @@ Main = function(InFile=NULL, OutFileBase=NULL, NRuns=-1, silent=FALSE){
   out=RunSims(inputs, silent)
   
   #'SAVE SUMMARY RESULTS .sum
-  if!(silent) cat("\nSaving summary...\n")
+  if(!silent) cat("\nSaving summary...\n")
   SaveSummary(out$inputs, out$SummaryStats, out$staticvars)
   
   #'SAVE ESCAPEMENT DATA .esc

@@ -13,3 +13,4 @@ BuildVignettes: yes
 ByteCompile: TRUE
 NeedsCompilation: no
 Packaged: 2017-01-20 22:02:22 UTC; anatin
+RoxygenNote: 6.0.1

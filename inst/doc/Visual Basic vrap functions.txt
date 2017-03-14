@@ -1,0 +1,3612 @@
+# Eli Holmes
+# This is the original Visual Basic Code which I used to create a 1 to 1 version of the R code
+
+VERSION 5.00
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCTL.OCX"
+Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
+Begin VB.Form MainForm 
+   Caption         =   "RapViability 2.0"
+   ClientHeight    =   4125
+   ClientLeft      =   165
+   ClientTop       =   450
+   ClientWidth     =   8445
+   Icon            =   "MainForm.frx":0000
+   LinkTopic       =   "Form1"
+   ScaleHeight     =   4125
+   ScaleWidth      =   8445
+   StartUpPosition =   2  'CenterScreen
+   Begin VB.TextBox Text1 
+      Height          =   3465
+      Left            =   -15
+      Locked          =   -1  'True
+      MultiLine       =   -1  'True
+      ScrollBars      =   3  'Both
+      TabIndex        =   1
+      Top             =   0
+      Width           =   6330
+   End
+   Begin MSComDlg.CommonDialog CommonDialog1 
+      Left            =   4800
+      Top             =   2520
+      _ExtentX        =   847
+      _ExtentY        =   847
+      _Version        =   393216
+   End
+   Begin MSComctlLib.StatusBar StatusBar1 
+      Align           =   2  'Align Bottom
+      Height          =   252
+      Left            =   0
+      TabIndex        =   0
+      Top             =   3864
+      Width           =   8448
+      _ExtentX        =   14896
+      _ExtentY        =   450
+      _Version        =   393216
+      BeginProperty Panels {8E3867A5-8586-11D1-B16A-00C0F0283628} 
+         NumPanels       =   1
+         BeginProperty Panel1 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
+            AutoSize        =   1
+            Object.Width           =   14314
+         EndProperty
+      EndProperty
+   End
+   Begin VB.Menu mnuFile 
+      Caption         =   "&File"
+      Begin VB.Menu mnuFileOpenInputFile 
+         Caption         =   "&Open Input File"
+         Shortcut        =   ^O
+      End
+      Begin VB.Menu mnuLine1 
+         Caption         =   "-"
+      End
+      Begin VB.Menu mnuFileRecentFiles 
+         Caption         =   "&Recent Files"
+      End
+      Begin VB.Menu mnuLine 
+         Caption         =   "-"
+      End
+      Begin VB.Menu mnuFileExit 
+         Caption         =   "E&xit"
+         Shortcut        =   ^Q
+      End
+   End
+   Begin VB.Menu mnuData 
+      Caption         =   "&Data"
+      Begin VB.Menu mnuDataNewParameters 
+         Caption         =   "&Change Parameters"
+         Shortcut        =   ^D
+      End
+      Begin VB.Menu mnuDataCheckInputValues 
+         Caption         =   "&Check Input Values"
+      End
+      Begin VB.Menu mnuLine3 
+         Caption         =   "-"
+      End
+      Begin VB.Menu mnuDataEditInputFile 
+         Caption         =   "&Edit Input File"
+      End
+   End
+   Begin VB.Menu mnuRun 
+      Caption         =   "&Run"
+      Begin VB.Menu mnuRunRun 
+         Caption         =   "&Run"
+         Shortcut        =   {F2}
+      End
+   End
+   Begin VB.Menu mnuResults 
+      Caption         =   "R&esults"
+      Begin VB.Menu mnuResultsByYear 
+         Caption         =   "&By Year"
+      End
+      Begin VB.Menu mnuResultsEscapement 
+         Caption         =   "&Escapement"
+      End
+      Begin VB.Menu mnuResultsSummary 
+         Caption         =   "&Summary"
+         Shortcut        =   ^S
+      End
+      Begin VB.Menu mnuLine4 
+         Caption         =   "-"
+      End
+      Begin VB.Menu mnuResultsDebugging 
+         Caption         =   "&Debugging"
+      End
+   End
+   Begin VB.Menu mnuHelp 
+      Caption         =   "&Help"
+      Begin VB.Menu mnuHelpHelp 
+         Caption         =   "&Help"
+         Enabled         =   0   'False
+         Shortcut        =   {F1}
+      End
+      Begin VB.Menu mnuLine2 
+         Caption         =   "-"
+      End
+      Begin VB.Menu mnuHelpAbout 
+         Caption         =   "&About"
+      End
+   End
+End
+Attribute VB_Name = "MainForm"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+'************* Program RapViability.bas *********
+' VIABILITY and RISK ASSESSMENT PROCEDURE (VRAP)
+'
+' Programmers (version 1.0): Norma Jean Sands
+'             (version 2.0,2.1): Trevor A. Branch and
+'                   8/5/01       Norma Jean Sands
+'             (version 2.2): Norma Jean Sands and Trevor A. Branch
+'             (versuin 2.2.5): 9/16/02 Norma Jean Sands
+
+' To date: 9/15/02
+' Requires input from a file named *.RAV
+'
+'
+'
+'*****************************************
+'Trevor Branch: modifications of program starting August 2001
+'Primary aim of modifications: translate program to
+'Visual Basic 6.0 from original Basic. Alterations from original intent
+'marked by "TAB" in comments.
+'Notes:
+'The process went in several stages
+'1. Copied code procedure by procedure and checked for
+'    correct syntax, converting to VB code.
+'2. Checked all indentation and changed tabs so that blocks of code
+'    made consistent sense. Tabs = 4 spaces.
+'3. Changed all output to Files that used the "USING" block,
+'    with the Format() statement for decimal places etc.
+'4. Variable declaration is absent throughout with the result that
+'    most variables are created on first useage, with default VARIANT
+'    type. If later used as age% for example, this creates a conflict.
+'    Define "option explicit" so that all variables must be declared.
+'5. Can only "redim" an array that has been declared as dynamic,
+'    i.e. Dim SomeArray()
+'    so changed all original declarations of this form to
+'    dynamic arrays and then did a redim afterwards.
+'6. 30 August. Changed the input and output section of the model so that it
+'    asks the user to search for the input file and directory
+'    using the builtin Windows functions. It automatically puts
+'    the output files in that same directory, and puts the file
+'    name in the header of the program. User can input file name
+'    under File->Open Input file. If not done, then when user
+'    attempts to Run, they are prompted for the input file.
+'    Once input file entered, automatically uses that file unless
+'    another input file is specified under File->Open Input file.
+'    See subs mnuFileOpenInputFile and GetFileNames.
+'7. 31 August. Added the Help->About form.
+'8. 31 August. Added the form InputData and the sub ShowInputDataForm
+'    This form details all the input data and variable names so that
+'    it is possible to double check that the input data has been
+'    correctly read in from the input files. Note that this is only
+'    for a standard input file. If the SRR, the maxage, or other
+'    "conditional" parameters are altered so that the input
+'    file has different input variables, then this form
+'    will not reflect these new input variables. Use the tooltips
+'    on this form to see the variable names used in the program.
+'    Values of the variables cannot be changed in this form, perhaps
+'    this features could be added in future versions together with a
+'    "save changes" feature. Note that the header reflects the
+'    description of the run in the header line of the input file.
+'9.  1 September. Checked that the input variables are not changed
+'    in the operation of the program. Turns out that "DR" IS changed
+'    when depens = YES and DR = 1 but this matches the original BASIC program.
+'10. 1,3 September. Started stepping through the program line by line to
+'    make sure that there are no bugs in how it operates.
+'11. Checked execution time for 50 years and 1000 sims and steps
+'    of 0.1 between 0.1 and 2.5. It took 14 minutes on PIII laptop
+'    with processor of 700Mhz and 64 Mb RAM.
+'12. Added the progress bar and time to completion indicator. This
+'    was written by me in 1999 and comes as a standalone Visual
+'    Basic class with its associated form.
+'13. Changed all references to exp(1) to 2.71828.
+'14. 4 Sept. Added function PrintStr so user can view
+'    progress of the program inside window in a scrollable
+'    text box. Unfortunately this only works for <32Kb
+'    so cannot be used to view the output files. Also
+'    changed all old references to Print to PrintStr.
+'15. 4 Sept. Added references to using Notepad.exe for viewing the
+'    input and the output files using Notepad. Note that this
+'    will cause an error if the system you are using does not
+'    have Notepad installed. I guess this would happen on Unix, Apple
+'    etc systems, hence it is worthwhile looking at a text editor
+'    for such systems if this program needs to be compatible with
+'    those systems.
+'16. 5 Sept. Changed all variables of undeclared type, which
+'    default to "variant" in VB, to "double". Did this for all
+'    global variables and arrays. In VB, variables which do not have
+'    a type declaration are assumed variant and take up 16 bytes
+'    plus more expensive computationally. Singles take 4 bytes,
+'    and doubles 8 bytes. Did a timing check and this change
+'    speeded up a test run from 141 seconds (variants) to 85
+'    seconds (doubles) to 84 seconds (singles). Kept them all
+'    in double precision to avoid potential overflow problems.
+'17. 5 Sept. Extended the double precision to all local variables too.
+'    (i.e. All vars declared inside subs and functions.)
+'    Repeated the speed check in 16 above. Test now runs in 68
+'    seconds. Lesson: declare the type of all variables for
+'    improved speed.
+'18. 6 Sept. Started stepping through BASIC and VB6 versions in parallel.
+'    I suspect there may be a problem in the gamma generating functions in BASIC
+'    because of the bugs detailed below, but do not know how to correctly
+'    check. For example, for alpha = 0.32022, beta = 1.99588
+'    when 10000 runs are simulated, the mean is 0.597 and SD = 0.930
+'    The real values should be 0.639 and 1.129 respectively.
+'    When the bugs below are fixed... it makes no difference whatsoever. Grin.
+'19. Completed debugging step by step. Changed all random number generation
+'    so that the results are fixed, for easier comparison. The results
+'    came out identical, provided I did not change BUG (4) (see below)
+'    which on reflection may not be a bug, but needs checking.
+'20. Went through file output formatting to get the format of the
+'    output files identical to the original outputs. Required
+'    the use of a function called "DecimalFormat" which I wrote
+'    a few years ago, in order to line up the outputs so
+'    they were right adjusted and also so that they line up under
+'    the decimal point. VB only allows left-adjusted outputs.
+'21. Commented out all the statements which remove random variability
+'    in the program and were added for comparison with the BASIC program.
+'22. Did some speed comparisons between VB version and BASIC version
+'    for 10 sims, years = 10, 23 steps, it took 8.6 seconds for
+'    the BASIC version, and 1.9 seconds for the VB running from VB.
+'    For 1000 sims it took 19min15 for BASIC and 1min50 for VB.
+'    This is encouraging. (Note, no debug.print statements during testing!)
+'23. Added a Rapviability.ini file in the c:\windows directory.
+'    This stores the most recently used input file and directory
+'    so that the program will automatically go to that file.
+'    Note that this is a general feature which could be
+'    used to store various things like a full list of the most
+'    recently used files. However, I have not figured out how
+'    to convince VB that it needs a recently used file list
+'    on the file menu...
+'24. Check why divide by zero error occurs. Have test
+'    file divzero.rav, with ranseed = 5, step 0.01 to 0.01 and 35 years.
+'    This crashes both the DOS and VB versions. After discussion
+'    with NJS, changed several lines of code with x/0 or 0/0
+'    potentials, in both the CompRecruits and in the CompStats subs.
+'    Seems to run OK now.
+'25. Changed the Run->Run option so that it prompts the user
+'    for an output file name (default = name of input file)
+'    with extension .sum.
+'    If the user changes this from the name of the input file
+'    then also save the input file under that name, so that
+'    the resulting files will be xx.rap, xx.byr, xx.esc, xx.sum
+'    and possibly xx.dbg if the debugging was set to ON.
+'26. When the user chooses the output files, there is a possibility
+'    that they will overwrite the existing output files. This
+'    may not be what they want. Therefore added a message box
+'    which gives a list of files that will be overwritten
+'    and queries whether the user really wants this. This confusion
+'    could arise because the .sum file may be unique but it may
+'    overwrite other output files in that directory.
+'27. Prompts the user with a list of most recently used
+'    filenames as input files when the program is loaded.
+'    The template used in PowerPoint is mimicked. Also added
+'    this option to the File menu as "Recent files"
+'28. Previously, if user chose Data->EditInputFile,
+'    the options for looking at the outputs were banned.
+'    Changed so that user can still look at outputs but
+'    will be warned that the input file has been
+'    changed since the last run. Of course if the output
+'    file is subsequently modified too then this warning
+'    will not be displayed.
+'29. Added options for running this program from the command
+'    line with an input file *.rav (plus path name) as the first
+'    parameter, and an output file *.sum (plus path name) as the
+'    second parameter. A third parameter will specify whether
+'    the executable should exit or not.
+'    The user could either use their own specialised editor
+'    to look at the output files or use the finished
+'    run to examine the output. This is in preparation for
+'    running this program from Excel, and examining the output
+'    from there.
+'30. Translated extra changes to original code from NJS.
+'31. Added switch "CONSTRUN". If true, turns off the random
+'    number generator in the runs, and replaces calls to
+'    to random numbers with a constant number. If false, runs
+'    continue as before. Can be used to check that this code
+'    matches the BASIC code.
+'32. Changed CompBetaVariate to be a function returning a value.
+'    Note that I am not sure that this function does its job
+'    correctly, see my comments in the function.
+'33. Checked every output with both programs running in "CONSTRUN"
+'    mode and got identical results, except that the .sum file
+'    in the VB version has an extra row for Target ER = 0.60
+'    whereas the BASIC version ends at Target ER = 0.56.
+'    The other output files end at 0.56.
+'34. Repeated 33. for the nfspop inputs files. Absolutely no diffs
+'    on this occasion.
+'35. Corrected bug noted by NJS where caption title of input file reads
+'    "Get Output File" after running, and looks for .sum file after
+'    running.
+'36. To do: change form which allows one to see the variable
+'    values so that it reflects the changes to the input file.
+'37. To do: check out the Excel file option so that we can press
+'    a button in Excel and magically run the program from the
+'    spreadsheet with all the input values in the various cells.
+'38. To do: (wishlist) add form which allows user to change the
+'    number of simulations and so on. There are some philosophical
+'    questions here: for example, if the user changes the pars,
+'    should the input file be rewritten to reflect the changes?
+'****************************************
+
+'****************************************
+'TAB: bugs fixed
+'1. In GetInput, the variable "NumBreakPoints%" was misspelled as "NumBreakPoint%"
+'    in part of the code, this created a new variable with value 0. FIXED 28/Aug/01
+'    In the BASIC code, this variable is zero for the default input file, so no harm done.
+'2. Bug in function "GammaSample", in one of the lines returning the value of the
+'    function it uses "GammSample = " which created new variable GammSample and did
+'    not return the required value, but returned zero instead.
+'3. Bug in function CompBetaVariate where the two variables
+'    "alp" and "bet" are not defined (and hence zero on initialisation
+'    in the original program, but presumably are meant to
+'    be "Alpha" and "Beta". Changed alp -> Alpha and bet -> Beta
+'4. In CompStats, in two locations in the innermost loops, there is
+'    a loop which has "for Year% = x to NYears%" but the file reads
+'    look for a record using NYears% instead of Year%. In both cases
+'    I have not made changes here as I suspect this may not actually
+'    be a bug. If I changed it I would replace NYears% with Year%, as follows:
+'    OLD:'RecNumber& = Temp& + (Rep% - 1) * NumPerRep& + NYears%
+'    NEW: RecNumber& = Temp& + (Rep% - 1) * NumPerRep& + Year%
+'5. In sub CompRecruits, the line:
+'    Print #10, Year%, Rep%, RanMarine, RanFlow...
+'    The "year%" was not passed to the sub, and so it always writes "0"
+'    to the output file. Added the year as a parameter to the sub.
+'****************************************
+'****************************************
+'NJS: changes and additions to program version is now 2.2.1
+'1. 6/28/02 Hoc4 is added so that the hockey stick model can have freshwater and marine
+'    survival parameters
+'2. 8/6/02 Depensation fixed again
+'3. 7/9/02 Added functions Autocorrel, Trend, and Cycle
+'4. 8/6/02 LastRanError and kind fixed to retin value.
+'5. 8/6/02 Coding made more efficient in CompRecruits.
+'6. 8/6/02 Covariate parameter input changed to mean and cv instead of gamma parameters
+'       Model calculates gamma parameters.  This allows the cv to remain constant for
+'           high and low portions of cycle variable (instead of st dev)
+'7. TAB 8/20/02 Changed routine for generating random normal numbers to
+'           avoid problem where rnd returns exactly 0 and crashes program.
+'8. NJS 8/23/02 Changed Ric3 to be run with freshwater index instead of marine.
+'9. NJS 9/15/02 Hockey Stick fixed (now reaches replacement level under no harvest).
+'       For Trend, added additive as well as multiplicative trend.
+'       Added Hoc3 and Bev3; run with FW index
+'       Standardized input for Spawner Recruit parameters.  For all functions:
+'           a is productivity or slope at origin and b is density dependent
+'           parameter in # of fish:  capacity spawners for Ricker and max Recruits
+'           for Hockey Stick and Beverton Holt
+'10. NJS 10/3/02  Print out mean marine and fw parameters generated by gamma function.
+'11. NJS 12/16/02  v.2.2.5 Enables one to run without variation by checking for sd of zero.
+'12. NJS 9/15/03 prints out first value of marine survival and flow index
+
+Option Explicit   'forces programmer to declare EVERY variable.
+
+'Alphabetical list of module-level variables
+'These can be accessed from anywhere inside the MainForm
+'module, by any procedure
+'Suffixes:
+'% denotes integer
+'$ denotes string
+'! single
+'# double
+'& long
+
+'TAB, changed all without extensions to "single"
+
+Dim AveEnv As Double
+Dim AveRanFlow As Double
+Dim AveRanMarine As Double
+Dim BaseRegime%
+Dim BetaMarA As Double
+Dim BetaMarB As Double
+Dim BSRa As Double
+Dim BSRb As Double
+Dim BSRc As Double
+Dim BSRd As Double
+Dim Buffer As Double
+Dim BufferEnd As Double
+Dim BufferStart As Double
+Dim BufferStep As Double
+Dim ConvergeCrit As Double
+Dim CorrMS As Double
+Dim depen$
+Dim DL1 As Double
+Dim DL2 As Double
+Dim DR As Double
+Dim EscStart As Double
+Dim ECrit As Double
+Dim ERecovery As Double
+Dim EndAv%
+Dim EscChoice$
+Dim FirstRanMarine As Double
+Dim FirstRanFlow As Double
+Dim FlowAve As Double
+Dim FlowCV As Double
+Dim FlowSD As Double
+Dim GammaMgmtA As Double
+Dim GammaMgmtB As Double
+Dim GammaMarA As Double
+Dim GammaMarB As Double
+Dim GammaFlowA As Double
+Dim GammaFlowB As Double
+Dim InFile$       'Name and directory of input file
+Dim InFileCopy$   'Name and dir of copy of input file, in dir of output files
+Dim InFileSelected As Boolean  'has input file been selected?
+Dim LastRanError As Double
+Dim LastRanMarine As Double
+Dim LastRanFlow As Double
+Dim MarAve As Double
+Dim MarCV As Double
+Dim MarSD As Double
+Dim MarSurv$
+Dim MgmtError$
+Dim MaxAge%
+Dim MinAge%
+'Dim MaxRecruits As Double
+Dim MxR As Double
+Dim NRuns%
+Dim NumBreakPoints%
+Dim NYears%
+
+'TAB: The output files are stored under same name as input file
+'but with extensions *.byr, *.dbg, *.esc and *.sum
+'Temp files tempdat.tmp and SR.prn are also created in the
+'same directory as the input file.
+Dim OutFileByr$    'TAB: Path and name of output files *.byr
+Dim OutFileDbg$    'TAB: global, *.dbg
+Dim OutFileEsc$    '     *.esc
+Dim OutFileSum$    '     *.sum
+Dim OutFilePrn$    'Path plus "SR.prn"
+Dim OutFileTmp$    'Path plus "TempDat.tmp"
+
+Dim RanSeed As Integer
+Dim RecruitsAtAge1 As Double
+Dim Rep%
+Dim ResCorParameter As Double
+Dim SimulationsCompleted As Boolean  'TAB: whether simulations have been completed
+Dim SRa As Double
+Dim SRb As Double
+Dim SRc As Double
+Dim SRd As Double
+Dim SRErrorA As Double
+Dim SRErrorB As Double
+Dim SRType$
+Dim StepFunc$
+Dim SurvScale$
+Dim TrndCycF$
+Dim TCF1 As Double
+Dim TCF2 As Double
+Dim TCF3 As Double
+Dim TrndCycM$
+Dim TCM1 As Double
+Dim TCM2 As Double
+Dim TCM3 As Double
+Dim Title$
+Dim Version$
+
+'Added by TAB
+Dim Debugg$       'stores "YES" or "NO" for whether user wants debugging for this run
+
+
+Private Type BufRepYear
+    Age2AEQMort As Double
+    Age3AEQMort As Double
+    Age4AEQMort As Double
+    Age5AEQMort As Double
+    Age2Escpmnt As Double
+    Age3Escpmnt As Double
+    Age4Escpmnt As Double
+    Age5Escpmnt As Double
+    AEQMort As Double
+    Escpmnt As Double
+    CalendarHR As Double
+End Type
+
+Dim YearStats As BufRepYear
+
+Private Type ChangedValues
+    HaveChanged As Boolean
+    NumRuns As Integer
+    NumYears As Integer
+    BufferStep As Double
+    BufferStart As Double
+    BufferEnd As Double
+End Type
+
+Dim ChV As ChangedValues
+
+'Global constants
+Const MaxDimAge As Integer = 5
+Const MaxDimBreak As Integer = 2
+Const MaxDimBuf As Integer = 10
+Const MaxDimYear As Integer = 25
+Const RecentFiles As String = "C:\windows\rapviability.ini"
+Const CONSTRUN As Boolean = False   'TAB: If true, turns off random numbers throughout
+
+'global arrays
+'TAB: changed to define as double
+Dim AEQ() As Double
+Dim AvgAEQMort() As Double
+Dim AvgBYrHR() As Double
+Dim AvgCaHR() As Double
+Dim AvgECrit() As Double
+Dim AvgEscpmnt() As Double
+Dim BufAvgBYrHR() As Double
+Dim BufTargetU() As Double
+Dim Cohort() As Double
+Dim CohortStart() As Double
+Dim EscpmntBreakPoint() As Double
+Dim MatRate() As Double
+Dim MatU() As Double
+Dim MaxBYrHR() As Double
+Dim MaxEscpmnt() As Double
+Dim MinBYrHR() As Double
+Dim MinEscpmnt() As Double
+Dim NatMort() As Double
+Dim PropRec() As Double
+Dim PropExt() As Double
+Dim PTU() As Double
+Dim TargetU() As Double
+
+
+
+
+
+'*****  SUB AEQcalc  *****
+'Compute the AEQs for each age group
+'TAB: what are AEQs? Adult Equivalents!
+Sub AEQcalc()
+    Dim TmpA As Double  'TAB: added line
+    Dim TmpS As Double  'TAB: added line
+    Dim Age As Integer   'TAB: added line
+        
+    TmpA = 0
+    TmpS = 0
+    For Age = MaxAge% To MinAge% Step -1
+        AEQ(Age) = MatRate(Age) + TmpS * (1 - MatRate(Age)) * TmpA
+        TmpA = AEQ(Age)
+        TmpS = 1 - NatMort(Age)
+    Next Age
+
+End Sub
+
+'*****  FUNCTION Autocorrel  *****
+'Compute autocorrelated variable, p = autocorrelation, lastx = last value of variable x
+'NJS: created 7/9/02
+Function Autocorrel(p As Double, lastx As Double, x As Double) As Double
+        
+    Autocorrel = p * lastx + (1 - p) * x
+    
+End Function
+
+'*****  FUNCTION Trend  *****
+'Compute variable x with trend t for year y
+'NJS: created 7/9/02
+Function Trend(t As Double, y, x As Double, z) As Double
+' t is trend rate, y is time increment, x is first value, z is type of trend
+
+    If z = 0 Then
+        Trend = x * (1 + t) ^ y
+    ElseIf z = 1 Then
+        Trend = x + (y * t)
+    Else
+    If Trend < 0 Then Trend = 0
+    
+        Print "Unknown trend/cycle function"
+        Stop
+    End If
+    
+        
+        
+End Function
+
+'*****  FUNCTION Cycle  *****
+'Compute cyclic variable, a = amplitude, p = period, s = start, y = year, x = mean value of variable
+'NJS: created 7/9/02 corrected 9/16/03
+
+Function Cycle(a As Double, p As Double, s As Double, y, x As Double) As Double
+' a is amplitude, p is period, s is starting point, y time period
+' what is x doing here? It is average value and is not needed here.
+    Dim cy As Double
+    cy = Sin(2# * 3.141592654 * (y + s - 1) / p)
+    'in good survival, cycle ranges from 1 to a (amplitude)
+    'in bad survival, cycle ranges from 1/a to 1 (this might be lower than expected)
+    If cy >= 0 Then
+        cy = (cy * (a - 1)) + 1
+    Else
+        cy = (cy * (1 - (1 / a))) + 1
+    End If
+'    Cycle = cy + x    ' use if x is changed to scalar
+    Cycle = cy
+        
+End Function
+
+'*****  BufferInit  *****
+Sub BufferInit(Buffer As Double)
+'ADJUST TARGET RATE FOR BUFFER EXPLOITATION
+    Dim EBff As Double
+    Dim PBff As Double
+    Dim Break%
+    Dim QetR As Double
+    
+    Select Case StepFunc$
+    Case "Pop"
+        PBff = Buffer
+        EBff = 1
+    Case "ER"
+        PBff = 1
+        EBff = Buffer
+    Case Else
+        Call PrintStr("Unknown step selection", True)
+        Stop  'TAB: not very graceful
+    End Select
+    
+    'TAB: This select case added instead of being in RepInit
+    'note that the equations are rewritten to speed sims up.
+    Select Case SRType$
+    Case "HOC2", "HOC3", "HOC4"
+        SRb = PBff * BSRb
+        MxR = SRb * AveEnv
+        QetR = SRa * AveEnv * DL2
+        Call PrintStr("Max Recruits " & MxR, True)
+  
+    Case "BEV2", "BEV3", "BEV4"
+        SRb = PBff * BSRb
+        MxR = SRb * AveEnv
+        QetR = AveEnv / ((1 / SRb) + (1 / SRa) * (1 / DL2))
+        Call PrintStr("Max Recruits " & MxR, True)
+
+    Case "RIC2", "RIC3", "RIC4"
+        SRb = PBff * BSRb
+        MxR = SRa * AveEnv * SRb / 2.71828
+        QetR = AveEnv * SRa * DL2 * Exp(-DL2 / SRb)
+        Call PrintStr("Max Recruits " & MxR, True)
+
+    Case Else
+        Call PrintStr("Unknown stock recruit type", True)
+        Stop
+    End Select
+    
+    If DR = 1 Then
+        If QetR = 0 Then
+            DR = 0
+        Else
+            DR = DL2 / QetR  'TAB: don't like this, changing DR which is one of the original inputs
+        End If
+    End If
+
+    For Break% = 1 To NumBreakPoints% + 1
+        If NumBreakPoints% > 1 Then
+            If Break% = 1 Then
+                If TargetU(1) > TargetU(2) * EBff Then
+                    BufTargetU(1) = TargetU(2) * EBff
+                Else
+                    BufTargetU(1) = TargetU(1)
+                End If
+            Else
+                BufTargetU(Break%) = TargetU(Break%) * EBff
+            End If
+        Else
+            BufTargetU(Break%) = TargetU(Break%) * EBff
+        End If
+    Next Break%
+
+End Sub
+
+'*****  ClearImmediateWindow ******
+'TAB: added 3 Sept. Clears the Immediate window of text
+'from previous run. Not used anymore, but handy.
+'NBNBNBNB: to use, uncomment the debug.print line.
+'WARNING: if uncommented, this slows program execution from
+'within VB by 1-2 orders of magnitude since the program
+'looks for debugging statements instead of executing.
+'****************************
+Sub ClearImmediateWindow()
+    Dim i As Integer
+    For i = 1 To 200
+        'Debug.Print
+    Next i
+End Sub
+
+'*****  CompAgeCohort  *****
+Sub CompAgeCohort(TempCohort() As Double)
+    Dim Age As Integer      'counter for ages
+
+    For Age = MaxAge% To MinAge% + 1 Step -1
+        Cohort(Age) = TempCohort(Age - 1)
+    Next Age
+    
+    'recruitment I think
+    Cohort(MinAge%) = Cohort(MinAge% - 1)
+
+End Sub
+
+
+'*****  CompBetaVariate  *****
+'This subroutine generates a beta r.v.
+'It does so by using the gamma distribution
+'Mean = alpha/(alpha+beta)
+'Variance = (a*b)/((a+b)^2*(a+b+1))
+'TAB: not sure this is correct way of getting beta distr
+'since Beta(a,b) = (Gamma(a)*Gamma(b))/(Gamma(a+b))
+'***********************************************
+Function CompBetaVariate(Alpha As Double, Beta As Double)
+    Dim G1 As Double
+    Dim G2 As Double
+    
+    If CONSTRUN = True Then
+        CompBetaVariate = Alpha / (Alpha + Beta) 'expected value
+    Else
+        If Alpha <= 1 Then    'TAB: changed ALP to Alpha in this line
+            G1 = Gam1(Alpha, 1)
+        Else
+            G1 = Gam2(Alpha, 1)
+        End If
+        
+        If Beta <= 1 Then     'TAB: changed BET to Beta in this line
+            G2 = Gam1(Beta, 1)
+        Else
+            G2 = Gam2(Beta, 1)
+        End If
+        
+        CompBetaVariate = G1 / (G1 + G2)
+    End If
+End Function
+
+
+'*****  CompEscpmnt  *****
+Sub CompEscpmnt(Regime%, ActualU As Double, AEQMort() As Double, _
+            Escpmnt() As Double, TotAEQMort As Double, _
+            TotEscpmnt As Double, TotAdultEscpmnt As Double, _
+            TempCohort() As Double)
+    Dim Converge$
+    Dim ErrorScale As Double
+    Dim BufTargetUError As Double
+    Dim FishScale As Double
+    Dim Age%                 'counter for age
+    Dim PercentError As Double
+    Dim PTMort() As Double   'TAB: added declaration so something to redim in this sub
+    Dim MatMort() As Double  'TAB: added declaration so something to redim in this sub
+    Dim n As Integer
+    
+    Call ClearImmediateWindow
+    
+    'INITIALIZE PARAMETERS, VARIABLES, AND ARRAYS
+    Converge$ = "No"
+
+    'SET EXPLOITATION RATE TARGET AFTER ADJUSTMENT FOR MANAGEMENT ERROR.
+    ' SET INITIAL FISHERY SCALE To 1.0  UNLESS TARGET U=0
+    If MgmtError$ = "YES" Then
+        ErrorScale = GammaSample(GammaMgmtA, GammaMgmtB)
+    Else
+        ErrorScale = 1!
+    End If
+
+    If BufTargetU(Regime%) > 0 Then
+        BufTargetUError = BufTargetU(Regime%) * ErrorScale
+        If BufTargetUError >= 1! Then
+            Call PrintStr("Warning - Target HR Reduced to 0.99", True)
+            BufTargetUError = 0.99
+        End If
+        FishScale = 1
+    Else
+        FishScale = 0
+    End If
+    
+    n = 0
+    While Converge$ = "No"
+        n = n + 1
+        'RESET LOOP VARIABLES
+        ReDim AEQMort(MinAge% To MaxAge%)
+        ReDim Escpmnt(MinAge% To MaxAge%)
+        ReDim PTMort(MinAge% To MaxAge%)
+        ReDim MatMort(MinAge% To MaxAge%)
+        ReDim MatRun(MinAge% To MaxAge%)
+
+        TotAdultEscpmnt = 0
+        TotAEQMort = 0
+        TotEscpmnt = 0
+
+        'COMPUTE PRETERMINAL MORTALITY AND UPDATE COHORT
+        For Age% = MinAge% To MaxAge%
+            If FishScale * PTU(Age%) < 1 Then
+                PTMort(Age%) = FishScale * Cohort(Age%) * PTU(Age%)
+            Else
+                PTMort(Age%) = Cohort(Age%)
+            End If
+            TempCohort(Age%) = Cohort(Age%) - PTMort(Age%)
+        Next Age%
+
+        'COMPUTE MATURE RUN AND UPDATE COHORT
+        For Age% = MinAge% To MaxAge%
+            MatRun(Age%) = TempCohort(Age%) * MatRate(Age%)
+            TempCohort(Age%) = TempCohort(Age%) - MatRun(Age%)
+        Next Age%
+
+        'COMPUTE MATURE MORTALITY AND ESCAPEMENT
+        For Age% = MinAge% To MaxAge%
+            If FishScale * MatU(Age%) < 1 Then
+                MatMort(Age%) = FishScale * MatRun(Age%) * MatU(Age%)
+            Else
+                MatMort(Age%) = MatRun(Age%)
+            End If
+            Escpmnt(Age%) = MatRun(Age%) - MatMort(Age%)
+            
+            'njs: added to prevent escpmnt from being a fraction less than one
+            If Escpmnt(Age%) < 1 Then
+                Escpmnt(Age%) = 0
+            End If
+        Next Age%
+
+        'COMPUTE AEQ TOTAL MORTALITY EXPLOITATION RATE
+        For Age% = MinAge% To MaxAge%
+            AEQMort(Age%) = (AEQ(Age%) * PTMort(Age%)) + MatMort(Age%)
+            TotAEQMort = TotAEQMort + AEQMort(Age%)
+            TotEscpmnt = TotEscpmnt + Escpmnt(Age%)
+            If Age% > MinAge% Then
+                TotAdultEscpmnt = TotAdultEscpmnt + Escpmnt(Age%)
+            End If
+        Next Age%
+        
+        'njs: changed < 0 to < 1
+        If (TotAEQMort + TotEscpmnt) < 1 Then
+            ActualU = 0
+        Else
+            ActualU = TotAEQMort / (TotAEQMort + TotEscpmnt)
+        End If
+        
+        'COMPARE ACTUAL AND TARGET; SCALE EXPLOITATION RATES IF NECESSARY
+        'njs: added outer loop to prevent divide by zero
+        If ActualU > 0 Then
+            If BufTargetU(Regime%) > 0 Then
+                PercentError = Abs((ActualU - BufTargetUError) / BufTargetUError)
+                If PercentError > ConvergeCrit Then
+                    FishScale = FishScale * BufTargetUError / ActualU
+                Else
+                    Converge$ = "Yes"
+                End If
+            Else
+                Converge$ = "Yes"
+            End If
+        Else
+            Converge$ = "Yes"    'TAB: comment, more efficient: does not wait for 100 iterations
+        End If
+        If n > 100 Then
+            Converge$ = "Yes"    'exit attempt if > 100 iterations
+            Debug.Print "Iterations > 100 in CompEscpmnt"
+        End If
+        
+    Wend  'TAB: end of checking to see whether it has converged
+
+End Sub
+
+'*****  CompNatMort  *****
+'Let the number of fish in each age class decrease according to
+'the natural mortality in that age class.
+Sub CompNatMort()
+    Dim Age%     'counter for ages
+    
+    For Age% = MinAge% - 1 To MaxAge%
+        Cohort(Age%) = Cohort(Age%) * (1 - NatMort(Age%))
+    Next Age%
+
+End Sub
+
+
+'*************************  CompRecruits  *****
+'TAB: observation that this sub is now too long and should be broken
+'into smaller pieces...
+'**********************************************
+Sub CompRecruits(TotEscpmnt As Double, TotAdultEscpmnt As Double, _
+                AEQRecruits As Double, Year%)
+    Dim Escpmnt As Double
+    Dim StockScalar As Double
+    Dim RanMarine As Double
+    'Dim lnRanMarine As Double
+    'Dim lnRS As Double
+    Dim r As Double     'recruits (actually not used at all except in commented out bits)
+    Dim RanError As Double
+    Dim RanFlow As Double
+    'Dim LnR As Double
+    Dim fac As Double
+    Dim BetaVariate As Double
+    'these parameters added by njs
+    Dim Mean As Double
+    Dim Var As Double
+    Dim cy As Double
+    Dim MS As Double
+    Dim FWS As Double
+    Dim GammaMarCyA As Double
+    Dim GammaMarCyB As Double
+    Dim GammaFlowCyA As Double
+    Dim GammaFlowCyB  As Double
+    'end pars added by njs
+    
+    If EscChoice$ = "YES" Then
+        Escpmnt = TotAdultEscpmnt
+    Else
+        Escpmnt = TotEscpmnt
+    End If
+
+    'njs: added check for escapement less than 1
+    If Escpmnt < 1 Then    'TAB: changed < 0 to < 1
+        Escpmnt = 0
+    End If
+
+    'COMPUTE AEQ RECRUITMENT
+    Select Case SRType$
+  
+    Case "HOC2"
+        If SRa * Escpmnt > SRb Then
+            AEQRecruits = SRb
+        Else
+            AEQRecruits = SRa * Escpmnt
+        End If
+        If SurvScale$ = "YES" Then
+            StockScalar = GammaSample(SRErrorA, SRErrorB)
+            AEQRecruits = StockScalar * AEQRecruits
+        End If
+  
+    Case "RIC2"
+        AEQRecruits = SRa * Escpmnt * Exp(-Escpmnt / SRb)
+        If SurvScale$ = "YES" Then
+            StockScalar = GammaSample(SRErrorA, SRErrorB)
+            AEQRecruits = StockScalar * AEQRecruits
+        End If
+
+
+    Case "BEV2"
+        If Escpmnt > 0 Then
+            AEQRecruits = 1 / ((1 / SRb) + (1 / SRa) * (1 / Escpmnt))
+        Else
+            AEQRecruits = 0
+        End If
+        If SurvScale$ = "YES" Then
+            StockScalar = GammaSample(SRErrorA, SRErrorB)
+            AEQRecruits = StockScalar * AEQRecruits
+        End If
+  
+    '       IF debugg$ = "YES" THEN
+    '                PRINT #5, Escpmnt, R, AEQRecruits
+    '       END IF
+
+   Case "HOC3", "RIC3", "BEV3"
+        Select Case TrndCycF$
+            Case "Autoc"
+                If GammaFlowA + GammaFlowB = 0 Then
+                        RanFlow = FlowAve
+                    Else
+                        RanFlow = GammaSample(GammaFlowA, GammaFlowB)
+                        RanFlow = Autocorrel(TCF1, LastRanFlow, RanFlow)
+                End If
+                
+                If RanFlow < 0 Then
+                    RanFlow = 0
+                End If
+                FWS = Exp(SRd * RanFlow)
+                LastRanFlow = RanFlow
+            Case "Trend"
+                If GammaFlowA + GammaFlowB = 0 Then
+                        RanFlow = FlowAve
+                    Else
+                        Mean = Trend(TCF1, Year%, FlowAve, TCF2)
+                        Var = (FlowCV * Mean) ^ 2
+                        If Var = 0 Then
+                            RanFlow = Mean
+                        Else
+                            GammaFlowA = Mean * Mean / Var
+                            GammaFlowB = Var / Mean
+                            RanFlow = GammaSample(GammaFlowA, GammaFlowB)
+                        End If
+                End If
+                FWS = Exp(SRd * RanFlow)
+            Case "Cycle"
+                Mean = Cycle(TCF1, TCF2, TCF3, Year%, FlowAve)
+                ' should use TCF4 as scalar in place of FlowAve
+                Var = (FlowCV * Mean) ^ 2
+                If Var = 0 Then
+                        RanFlow = Mean
+                    Else
+                        GammaFlowCyA = Mean * Mean / Var
+                        GammaFlowCyB = Var / Mean
+                        RanFlow = GammaSample(GammaFlowCyA, GammaFlowCyB)
+                End If
+                FWS = Exp(SRd * RanFlow)
+            Case Else
+                Print "Unknown trend/cycle function"
+                Stop
+        End Select
+        AveRanFlow = AveRanFlow + RanFlow
+        If FWS < 0 Then FWS = 0
+        
+        If SRType$ = "HOC3" Then
+            If SRa * Escpmnt > SRb Then
+                r = SRb * FWS
+            Else
+                r = SRa * Escpmnt * FWS
+            End If
+            
+        ElseIf SRType$ = "RIC3" Then
+            r = SRa * Escpmnt * Exp(-Escpmnt / SRb) * FWS
+      
+        ElseIf SRType$ = "BEV3" Then
+            If Escpmnt > 0 Then
+                r = FWS / ((1 / SRb) + (1 / SRa) * (1 / Escpmnt))
+            Else
+                r = 0
+            End If
+        End If
+        
+        AEQRecruits = r
+            
+        If SurvScale$ = "YES" Then
+            If AEQRecruits > 0 Then
+                RanError = ResCorParameter * LastRanError + (1 - ResCorParameter) * RandNormErr * SRErrorB ^ 0.5
+                LastRanError = RanError
+                AEQRecruits = AEQRecruits * Exp(RanError)
+            End If
+        End If
+    
+          
+    '     IF debugg$ = "YES" THEN
+    '           Call Printstr( RandNormErr; RanFlow; Escpmnt; R; AEQRecruits
+    '     END IF
+      
+
+   Case "HOC4", "RIC4", "BEV4"
+       Select Case TrndCycM$
+            Case "Autoc"
+                If GammaMarA + GammaMarB = 0 Then
+                        RanMarine = MarAve
+                    Else
+                        RanMarine = GammaSample(GammaMarA, GammaMarB)
+                    RanMarine = Autocorrel(TCM1, LastRanMarine, RanMarine)
+                End If
+                                
+                If RanMarine < 0 Then
+                    RanMarine = 0
+                End If
+                MS = RanMarine ^ SRc
+                LastRanMarine = RanMarine
+            Case "Trend"
+                If GammaMarA + GammaMarB = 0 Then
+                        RanMarine = MarAve
+                    Else
+                        Mean = Trend(TCM1, Year%, MarAve, TCM2)
+                        Var = (MarCV * Mean) ^ 2
+                        If Var = 0 Then
+                            RanMarine = Mean
+                        Else
+                            GammaMarA = Mean * Mean / Var
+                            GammaMarB = Var / Mean
+                            RanMarine = GammaSample(GammaMarA, GammaMarB)
+                        End If
+                End If
+                MS = RanMarine ^ SRc
+            Case "Cycle"
+                Mean = Cycle(TCM1, TCM2, TCM3, Year%, MarAve)
+                ' should use TCF4 as scalar in place of MarAve
+
+                Var = (MarCV * Mean) ^ 2
+                If Var = 0 Then
+                        RanMarine = MarAve
+                    Else
+                        GammaMarCyA = Mean * Mean / Var
+                        GammaMarCyB = Var / Mean
+                        RanMarine = GammaSample(GammaMarCyA, GammaMarCyB)
+                End If
+                
+                MS = RanMarine ^ SRc
+            Case Else
+                Print "Unknown trend/cycle function"
+                Stop
+        End Select
+        AveRanMarine = AveRanMarine + RanMarine
+        If MS < 0 Then MS = 0
+        
+        Select Case TrndCycF$
+            Case "Autoc"
+                If GammaFlowA + GammaFlowB = 0 Then
+                        RanFlow = FlowAve
+                    Else
+                        RanFlow = GammaSample(GammaFlowA, GammaFlowB)
+                        RanFlow = Autocorrel(TCF1, LastRanFlow, RanFlow)
+                End If
+                
+                If RanFlow < 0 Then
+                    RanFlow = 0
+                End If
+                FWS = Exp(SRd * RanFlow)
+                LastRanFlow = RanFlow
+            Case "Trend"
+                If GammaFlowA + GammaFlowB = 0 Then
+                        RanFlow = FlowAve
+                    Else
+                        Mean = Trend(TCF1, Year%, FlowAve, TCF2)
+                        Var = (FlowCV * Mean) ^ 2
+                        If Var = 0 Then
+                            RanFlow = Mean
+                        Else
+                            GammaFlowA = Mean * Mean / Var
+                            GammaFlowB = Var / Mean
+                            RanFlow = GammaSample(GammaFlowA, GammaFlowB)
+                        End If
+                End If
+                FWS = Exp(SRd * RanFlow)
+            Case "Cycle"
+                Mean = Cycle(TCF1, TCF2, TCF3, Year%, FlowAve)
+                ' should use TCF4 as scalar in place of FlowAve
+                Var = (FlowCV * Mean) ^ 2
+                If Var = 0 Then
+                        RanFlow = FlowAve
+                    Else
+                        GammaFlowCyA = Mean * Mean / Var
+                        GammaFlowCyB = Var / Mean
+                        RanFlow = GammaSample(GammaFlowCyA, GammaFlowCyB)
+                End If
+                
+                FWS = Exp(SRd * RanFlow)
+            Case Else
+                Print "Unknown trend/cycle function"
+                Stop
+        End Select
+        AveRanFlow = AveRanFlow + RanFlow
+        If FWS < 0 Then FWS = 0
+        
+        If SRType$ = "HOC4" Then
+            If SRa * Escpmnt > SRb Then
+                r = SRb * MS * FWS
+            Else
+                r = SRa * Escpmnt * MS * FWS
+            End If
+            
+        ElseIf SRType$ = "RIC4" Then
+            r = SRa * Escpmnt * Exp(-Escpmnt / SRb) * MS * FWS
+      
+        ElseIf SRType$ = "BEV4" Then
+            If Escpmnt > 0 Then
+                r = MS * FWS / ((1 / SRb) + (1 / SRa) * (1 / Escpmnt))
+            Else
+                r = 0
+            End If
+        End If
+        
+        AEQRecruits = r
+            
+        If SurvScale$ = "YES" Then
+            If AEQRecruits > 0 Then
+                RanError = ResCorParameter * LastRanError + (1 - ResCorParameter) * RandNormErr * SRErrorB ^ 0.5
+                LastRanError = RanError
+                AEQRecruits = AEQRecruits * Exp(RanError)
+            End If
+        End If
+    
+          
+    '     IF debugg$ = "YES" THEN
+    '           Call Printstr( RandNormErr; RanMarine; RanFlow; Escpmnt; R; AEQRecruits
+    '     END IF
+
+      
+    Case Else
+        Call PrintStr("Unknown stock recruit function", True)
+        Stop
+    End Select
+
+    If depen$ = "YES" Then
+        If Escpmnt < DL1 + 1 Then
+            If Escpmnt < DL2 + 1 Then
+                fac = Escpmnt / DL2 * DR
+            Else
+                fac = ((1 - (DL1 - Escpmnt) / (DL1 - DL2)) * (1 - DR)) + DR
+            End If
+            If fac < 0 Then
+                fac = 0
+            End If
+            AEQRecruits = fac * AEQRecruits
+        End If
+    End If
+
+
+    Print #10, Year%, Rep%, RanMarine, RanFlow, Escpmnt, AEQRecruits
+
+    'COMPUTE RECRUITS
+    Cohort(1) = AEQRecruits / RecruitsAtAge1
+
+    'ADD MARINE SURVIVAL IF STOCK RECRUIT FUNCTION IS SPAWNER TO SMOLT
+    If MarSurv$ = "YES" Then
+        BetaVariate = CompBetaVariate(BetaMarA, BetaMarB)
+        Cohort(1) = Cohort(1) * BetaVariate
+    End If
+
+End Sub
+
+
+'*****  CompStats  *****
+'TAB: changed so that it returns true if completed, false
+'if halted using progress Cancel button.
+'**********************************
+Function CompStats(BufNum%) As Boolean
+    Dim Buf%
+    Dim Byr%
+    Dim Year%
+    Dim MinEscpmntt As Double   'all four were same name as arrays, added extra "t"
+    Dim MaxEscpmntt As Double   '""
+    Dim AvgEscpmntt As Double   '""
+    Dim NumPerBuf&
+    Dim NumPerRep&
+    Dim RecNumber&
+    Dim AEQMort As Double
+    Dim CalendarHR As Double
+    Dim Escpmnt As Double
+    Dim Ex As Double
+    Dim GN As Double
+    Dim Age%
+    Dim TempBYrHR As Double
+    Dim Temp&     'TAB: added to speed computations
+    Dim objProgress2 As New clsProgress
+    
+    
+  
+    CompStats = True
+    With objProgress2
+        .Caption = "Computing stats..."
+        .Max = BufNum%
+        .Value = 0
+    End With
+    
+    'INITIALIZE MIN, AVG, AND MAX BROOD YEAR EXPLOITATION RATES
+    For Buf% = 1 To BufNum%
+        For Byr% = -1 To NYears% - 5
+            MinBYrHR(Buf%, Byr%) = 1!
+            AvgBYrHR(Buf%, Byr%) = 0!
+            MaxBYrHR(Buf%, Byr%) = 0!
+        Next Byr%
+    Next Buf%
+
+    'TAB: these two lines taken out of innermost loop
+    'since their value remains the same always, no need to
+    'recalculate. Also can be used in place of calculation later
+    NumPerBuf& = CLng(NRuns%) * NYears%   'added clng for VB conversion
+    NumPerRep& = NYears%
+    
+    'COMPUTE STATISTICS
+    For Buf% = 1 To BufNum%
+        objProgress2.Value = Buf%
+        If objProgress2.CancelPressed = True Then
+            Call CurrentStatus("Program halted by user, simulations not completed.")
+            CompStats = False   'return false so calling sub knows that cancel has been pressed
+            Exit Function 'exit without finishing
+        End If
+        Temp& = (Buf% - 1) * NumPerBuf&   'do this here and not inside inner loop
+        For Year% = 1 To NYears%
+            MinEscpmntt = 10000000000#
+            MaxEscpmntt = 0
+            For Rep% = 1 To NRuns%
+                RecNumber& = Temp& + (Rep% - 1) * NumPerRep& + Year%
+
+                'COMPUTE AVERAGE MORTALITY OVER REPETITIONS
+                Get #4, RecNumber&, YearStats
+                AEQMort = YearStats.AEQMort
+                AvgAEQMort(Buf%) = AvgAEQMort(Buf%) + AEQMort
+         
+                'COMPUTE AVERAGE CALENDAR YEAR HARVEST RATE
+                CalendarHR = YearStats.CalendarHR
+                AvgCaHR(Buf%) = AvgCaHR(Buf%) + CalendarHR
+
+                'COMPUTE PROPORTION OF TIMES ESCAPEMENT WAS LESS THAN LOWER LEVEL
+                Escpmnt = YearStats.Escpmnt
+                If Escpmnt < ECrit Then
+                    AvgECrit(Buf%) = AvgECrit(Buf%) + 1
+                End If
+
+                'FIND MINIMUM, MAXIMUM, AND AVERAGE ESCAPEMENT
+                If Escpmnt < MinEscpmntt Then
+                    MinEscpmntt = Escpmnt
+                End If
+                If Escpmnt > MaxEscpmntt Then
+                    MaxEscpmntt = Escpmnt
+                End If
+                AvgEscpmnt(Buf%, Year%) = AvgEscpmnt(Buf%, Year%) + Escpmnt
+            Next Rep%
+            MinEscpmnt(Buf%, Year%) = MinEscpmntt
+            MaxEscpmnt(Buf%, Year%) = MaxEscpmntt
+            AvgEscpmnt(Buf%, Year%) = AvgEscpmnt(Buf%, Year%) / NRuns%
+        Next Year%
+        
+        'TAB: replaced the denominator "CLng(NRuns%) * NYears%" with "NumPerBuf&"
+        'since that variable already holds the answer to the calculation
+        AvgAEQMort(Buf%) = AvgAEQMort(Buf%) / NumPerBuf&
+        AvgECrit(Buf%) = AvgECrit(Buf%) / NumPerBuf&
+        AvgCaHR(Buf%) = AvgCaHR(Buf%) / NumPerBuf&
+
+        'COMPUTE PROPORTION OF TIMES ENDING ESCAPEMENT EXCEEDED UPPER LEVEL OR WENT BELOW QET (DL2)
+        For Rep% = 1 To NRuns%
+            AvgEscpmntt = 0
+            Ex = 0
+            For Year% = NYears% - (EndAv% - 1) To NYears%
+                'TAB: bug fixed NYears replaced by Year
+                RecNumber& = Temp& + (Rep% - 1) * NumPerRep& + Year%
+                
+                Get #4, RecNumber&, YearStats
+                Escpmnt = YearStats.Escpmnt
+                If Escpmnt > 1 Then
+                    AvgEscpmntt = AvgEscpmntt + Log(Escpmnt)
+                End If
+                If Escpmnt < DL2 + 1 Then
+                    Ex = 1
+                End If
+            Next Year%
+            GN = EndAv%
+            If Exp(AvgEscpmntt / GN) > ERecovery Then
+                PropRec(Buf%) = PropRec(Buf%) + 1
+            End If
+                
+            PropExt(Buf%) = PropExt(Buf%) + Ex
+                
+        Next Rep%
+        
+        PropRec(Buf%) = PropRec(Buf%) / NRuns%
+        PropExt(Buf%) = PropExt(Buf%) / NRuns%
+
+        'COMPUTE BROOD YEAR HARVEST RATES
+        For Rep% = 1 To NRuns%
+            ReDim BYrAEQMort(-1 To NYears% - 5)
+            ReDim BYrEscpmnt(-1 To NYears% - 5)
+            For Year% = 1 To NYears%
+                'TAB: there is a bug in this line, NYears% should be Year%.
+                'RecNumber& = Temp& + (Rep% - 1) * NumPerRep& + NYears%
+                RecNumber& = Temp& + (Rep% - 1) * NumPerRep& + Year%
+                Get #4, RecNumber&, YearStats
+
+                'TAB: this whole next section is horribly clumsy
+                'but is left as is. Maybe in future the record could be
+                'changed to YearStats.AEQMort(2) or (3) etc and the whole
+                'section put in a loop.
+                'AGE 2
+                Age% = 2
+                Byr% = Year% - Age%
+                If Byr% >= -1 And Byr% <= NYears% - 5 Then
+                    AEQMort = YearStats.Age2AEQMort
+                    Escpmnt = YearStats.Age2Escpmnt
+                    BYrAEQMort(Byr%) = BYrAEQMort(Byr%) + AEQMort
+                    BYrEscpmnt(Byr%) = BYrEscpmnt(Byr%) + Escpmnt
+                End If
+
+                'AGE 3
+                Age% = 3
+                Byr% = Year% - Age%
+                If Byr% >= -1 And Byr% <= NYears% - 5 Then
+                    AEQMort = YearStats.Age3AEQMort
+                    Escpmnt = YearStats.Age3Escpmnt
+                    BYrAEQMort(Byr%) = BYrAEQMort(Byr%) + AEQMort
+                    BYrEscpmnt(Byr%) = BYrEscpmnt(Byr%) + Escpmnt
+                End If
+
+                'AGE 4
+                Age% = 4
+                Byr% = Year% - Age%
+                If Byr% >= -1 And Byr% <= NYears% - 5 Then
+                    AEQMort = YearStats.Age4AEQMort
+                    Escpmnt = YearStats.Age4Escpmnt
+                    BYrAEQMort(Byr%) = BYrAEQMort(Byr%) + AEQMort
+                    BYrEscpmnt(Byr%) = BYrEscpmnt(Byr%) + Escpmnt
+                End If
+
+                'AGE 5
+                Age% = 5
+                Byr% = Year% - Age%
+                If Byr% >= -1 And Byr% <= NYears% - 5 Then
+                    AEQMort = YearStats.Age5AEQMort
+                    Escpmnt = YearStats.Age5Escpmnt
+                    BYrAEQMort(Byr%) = BYrAEQMort(Byr%) + AEQMort
+                    BYrEscpmnt(Byr%) = BYrEscpmnt(Byr%) + Escpmnt
+                End If
+            Next Year%
+            
+            For Byr% = -1 To NYears% - 5
+                If BYrAEQMort(Byr%) < 1E-16 Then   'TAB: added for extinction cases
+                    TempBYrHR = 0
+                Else
+                    TempBYrHR = BYrAEQMort(Byr%) / (BYrAEQMort(Byr%) + BYrEscpmnt(Byr%))
+                End If
+                BufAvgBYrHR(Buf%) = BufAvgBYrHR(Buf%) + TempBYrHR
+                AvgBYrHR(Buf%, Byr%) = AvgBYrHR(Buf%, Byr%) + TempBYrHR / NRuns%
+                If TempBYrHR > MaxBYrHR(Buf%, Byr%) Then
+                    MaxBYrHR(Buf%, Byr%) = TempBYrHR
+                End If
+                If TempBYrHR < MinBYrHR(Buf%, Byr%) Then
+                    MinBYrHR(Buf%, Byr%) = TempBYrHR
+                End If
+            Next Byr%
+        Next Rep%
+        BufAvgBYrHR(Buf%) = BufAvgBYrHR(Buf%) / (CLng(NRuns%) * (NYears% - 3))
+    Next Buf%
+
+End Function
+
+'*****   CompStockStatus   *****
+Sub CompStockStatus(TotAdultEscpmnt As Double, Status%)
+    Dim Break%
+    Dim EscpmntCheck$
+    
+    Break% = 1
+    EscpmntCheck$ = "True"
+    While Break% <= NumBreakPoints% And EscpmntCheck$ = "True"
+        If TotAdultEscpmnt > EscpmntBreakPoint(Break%) Then
+            EscpmntCheck$ = "True"
+            Break% = Break% + 1
+        Else
+            EscpmntCheck$ = "False"
+        End If
+    Wend
+
+    Status% = Break%
+
+End Sub
+
+'*****   CurrentStatus *******
+'TAB: Prints out stuff on the status bar and updates the status bar
+'****************************************
+Public Sub CurrentStatus(str As String)
+    StatusBar1.Panels(1).Text = str
+    Me.Refresh
+    DoEvents
+End Sub
+
+
+
+'******************   Gam1   *****
+Function Gam1(Alpha As Double, Beta As Double) As Double
+'this function generates a random gamma deviate with shape
+'paramater alp and scale parameter bet
+'for alpha values less than or equal to 1.0
+'uses GS algorithm, developed by Ahrens and Dieter (1972)
+
+'TAB: expanded variable declaration
+'TAB: do not like GoTo statement but seems harmless.
+    Dim u1 As Double
+    Dim u3 As Double
+    Dim b As Double
+    Dim p As Double
+    Dim x As Double
+
+'goto statement goes to here
+StartAgain:
+    
+    'TAB: new (more logical) loop
+    Do
+        u1 = Rnd()
+    Loop While u1 = 0
+    
+    b = (2.71828 + Alpha) / 2.71828
+    p = b * u1
+    If p <= 1 Then
+        'X = Exp(Log(p) / Alpha)    'TAB: 8% quicker to have X = p^(1/alpha)
+        x = p ^ (1 / Alpha)
+        If (Rnd() > Exp(-x)) Then  'TAB: removed u2 variable
+            GoTo StartAgain
+        End If
+    Else
+        x = -Log((b - p) / Alpha)
+        'TAB: added loop to ensure that log(0)=ERR not encountered
+        Do
+            u3 = Rnd()
+        Loop While u3 = 0
+        If Log(u3) > ((Alpha - 1) * Log(x)) Then
+            GoTo StartAgain
+        End If
+    End If
+    Gam1 = x * Beta
+End Function
+
+'*****   Gam2   *****
+Function Gam2(Alpha As Double, Beta As Double) As Double
+'this function generates a random gamma deviate with shape
+'parameter Alpha and scale parameter Beta
+'for alpha values greater than 1.0
+'uses GKM2 algorithm by Cheng and Feast(1979).
+'TAB: tried rewriting without GoTos but ran slower so left as is.
+    Dim a As Double
+    Dim b As Double
+    Dim c As Double
+    Dim d As Double
+    Dim u1 As Double
+    Dim u2 As Double
+    Dim u As Double
+    Dim f As Double
+    Dim w As Double
+    Dim z As Double
+    
+    a = Alpha - 1
+    b = (Alpha - 1 / (6 * Alpha)) / a
+    c = (2 / a)
+    d = c + 2
+    f = Sqr(Alpha)
+    
+TryAgain:
+        u1 = 0
+        u2 = 0
+        While u2 <= 0 Or u2 >= 1
+            u1 = Rnd
+            u = Rnd
+            u2 = u1 + (1 - (1.857764 * u)) / f
+        Wend
+        w = b * u1 / u2
+        If (c * u2 - d + w + 1 / w) <= 0 Then GoTo Accept
+        If (c * Log(u2) - Log(w) + w - 1) <= 0 Then GoTo Accept
+        GoTo TryAgain
+Accept:
+    z = a * w
+    Gam2 = z * Beta
+    
+End Function
+
+'*****   GammmaSample   *****
+'Function generates a random gamma deviate with shape
+'paramater alpha and scale parameter beta
+'Algorithms (Gam1 or Gam2 functions) depend on value of alpha
+'Truncates if more than 3 SD from mean.
+'******************************************************************
+Function GammaSample(Alpha As Double, Beta As Double) As Double
+    Dim TestGamma As Double
+    Dim Mean As Double
+    Dim Variance As Double
+    Dim SD As Double
+    Dim Min As Double
+    Dim Max As Double
+    
+    If CONSTRUN = True Then
+        GammaSample = Alpha * Beta   'for parallel runs, return mean value if constant runs specified
+    Else
+        If Alpha <= 1 Then
+            TestGamma = Gam1(Alpha, Beta)
+        Else
+            TestGamma = Gam2(Alpha, Beta)
+        End If
+         
+        'TRUNCATE IF MORE THAN 3 STANDARD DEVIATIONS
+        Mean = Alpha * Beta
+        Variance = Beta * Mean
+        SD = Variance ^ 0.5
+        
+        Min = Mean - 3 * SD
+        If TestGamma < Min Then
+            GammaSample = Min
+        Else
+            GammaSample = TestGamma
+        End If
+        
+        Max = Mean + 3 * SD
+        If TestGamma > Max Then
+            GammaSample = Max
+        Else
+            GammaSample = TestGamma
+        End If
+    End If
+End Function
+
+'*****  GetCommandLine  ******
+'TAB: 20 Sept. Checks the command line for inputs and returns
+'three parameters: input file name, output file name,
+'whether the user wants the program to exit after running,
+'and whether the user wants to run the program or just load it.
+'Valid command-lines:
+'rapviability -in test.rav -out test.sum -exit  'exit after running, assume same path as .exe
+'rapviability -in test.rav -out test.sum      'exit after running
+'rapviability -in test.rav -norun             'output default test.sum etc, do not run file
+'rapviability -in test.rav        'runs, exits, min command line arguments
+'*************************************************
+Public Function GetCommandLine(InFileName$, OutFileName$, _
+        WantsExit, WantsRun) As Boolean
+                
+    Dim CmdLine As String   'string of command line arguments
+    Dim CmdLineLen As Integer 'no. of chars in command line
+    Dim i As Integer        'counter
+    Dim c As String         'one char at a time
+    Dim PosInFile As Integer 'position in command line of name of input file
+    Dim PosEndIn As Integer  'position of end of input file name
+    Dim PosOutFile As Integer 'position in command line output file name
+    Dim PosEndOut As Integer  'position of end of output file
+    
+    'Get command line arguments.
+    CmdLine = Command()
+    If Len(CmdLine) > 4 Then
+        CmdLineLen = Len(CmdLine)
+        
+        PosInFile = InStr(CmdLine, "-in ")
+        If PosInFile = 0 Then
+            GetCommandLine = False
+        Else
+            PosInFile = PosInFile + Len("-in ")
+            GetCommandLine = True
+            
+            'get name of input file
+            PosEndIn = InStr(PosInFile, CmdLine, " -")
+            If PosEndIn = 0 Then
+                InFileName = Mid(CmdLine, PosInFile, CmdLineLen - PosInFile + 1)
+            Else
+                InFileName = Mid(CmdLine, PosInFile, PosEndIn - PosInFile)
+            End If
+            
+            'get name of output file
+            PosOutFile = InStr(CmdLine, "-out ")
+            If PosOutFile = 0 Then
+                OutFileName = Left(InFileName, Len(InFileName) - 4)
+                OutFileName = OutFileName & ".sum"
+            Else
+                PosOutFile = PosOutFile + Len("-out ")
+                PosEndOut = InStr(PosOutFile, CmdLine, " -")
+                If PosEndOut = 0 Then
+                    OutFileName = Mid(CmdLine, PosOutFile, CmdLineLen - PosOutFile + 1)
+                Else
+                    OutFileName = Mid(CmdLine, PosOutFile, PosEndOut - PosOutFile)
+                End If
+            End If
+            
+            'check if user wants to exit or not, and to run or not
+            If InStr(CmdLine, "-norun") > 0 Then
+                WantsRun = False
+                WantsExit = False   'don't allow exit if no run
+            Else
+                WantsRun = True
+                'if wants run, check if must exit after running
+                If InStr(CmdLine, "-exit") > 0 Then
+                    WantsExit = True
+                Else
+                    WantsExit = False
+                End If
+            End If
+        End If
+        
+        'Finally, if input file does not exist, return FALSE
+        If Dir(InFileName) = "" Then
+            GetCommandLine = False
+        End If
+        
+        'update the caption and allowable options
+        If GetCommandLine = True Then
+            MainForm.Caption = InFileName & " - RapViability " & App.Major & "." & App.Minor
+            InFileSelected = True   'have got a valid input file
+            Call SetOutFileNames(InFileName$, OutFileName$, OutFileEsc$, _
+                OutFileByr$, OutFileDbg$, OutFilePrn$, _
+                OutFileTmp$, InFileCopy$)
+            If InFile$ <> InFileCopy$ Then
+                Call FileCopy(InFileName, InFileCopy$)
+            End If
+            Call MenuOptionsAllowed(InFileSelected, SimulationsCompleted)
+        
+        End If
+    End If
+End Function
+
+'*****   GetInFile  ******
+'Added by TAB 30 August 2001. Altered 14 Sept.
+'Uses windows prompts
+'to get the input file name and path from the user.
+'Requires boolean variable indicating whether the input
+'file has already been obtained or not.
+'Returns TRUE if file correctly obtained, FALSE if
+'file not found. If cancel pressed, status remains the same
+'*************************************************
+Function GetInFile(InFile$, InFileSelected As Boolean) As Boolean
+    
+    Dim MostRecentFile As String   'find most recent file used
+                                      'static == retains value between calls
+    
+    'if user selects no file, or an error, then go
+    'to end and exit the program "gracefully"
+    On Error GoTo errhandler
+    
+    'CommonDialog1 is the invisible control on the form
+    'which handles file inputs/outputs, printing etc.
+    With CommonDialog1
+            
+        'TAB: added this section. If no file selected yet, then
+        'go to .ini file (if it exists) and get the last file
+        'that was used for a run (if still exists), and set the
+        'the current directory to
+        'it and the last filename to it too.
+        If InFileSelected = False Then
+            If Dir(RecentFiles$) <> "" Then
+                Open RecentFiles$ For Input As #11
+                'check file is not empty. Yes, I am paranoid. TAB.
+                If Not EOF(11) Then
+                    Input #11, MostRecentFile
+                End If
+                Close #11
+                'if most recent filename in is a real file then set
+                'initial directory to it
+                If Dir(MostRecentFile) <> "" Then
+                    .FileName = MostRecentFile
+                End If
+            End If
+        Else
+            .FileName = InFile$   'select previous infile as default
+        End If
+        
+        ' Raise an error if cancel is pressed
+        .CancelError = True
+        
+        ' We HAVE to select a file or press cancel
+        .Flags = cdlOFNFileMustExist
+    
+        ' Look for .rav files ONLY
+        .Filter = "Input Files (*.rav)|*.rav"
+        
+        'change title to
+        .DialogTitle = "Select Input File"
+        
+        ' Specify default filter - .rav
+        .FilterIndex = 1
+        
+        ' Display the dialog for File Open...
+        .ShowOpen
+        
+        ' Get the selected filename
+        InFile$ = .FileName
+    End With
+    
+    'Update the heading of the main form to reflect the filename
+    MainForm.Caption = InFile$ & " - RapViability " & App.Major & "." & App.Minor
+    
+    GetInFile = True  'have got a valid input file
+    ChV.HaveChanged = False 'has not changed values compared to input file
+    Exit Function     'do not got through error checking
+errhandler:
+    GetInFile = InFileSelected  'status does not change
+End Function
+
+'*****  GetInput   *****
+'TAB: all PRINT statements have been replaced by debug.print
+'which will output to the Immediate window, but not do
+'anything for runtime .exe programs.
+'TAB: replaced all references to debug$ with debugg$ since the
+'former is a restricted word in VB6.
+Sub GetInput()
+    'TAB: added all variable declarations
+    Dim scratch$      'reads in end of line character from file
+    Dim BreakPoint%   'counter for breakpoints
+    Dim Age%          'counter for age of fish
+    Dim Endd$         'reads in last line of file (hopefully)
+    Dim dd As Double
+    
+    
+    'DISPLAY AVAILABLE INPUT FILES AND SELECT ONE FOR RUN
+    'TAB: Only get file name if user has not already used the menu
+    'option "File->Open Input File" to select the input file
+    Open InFile$ For Input As #1
+
+    'GET TITLE FOR RUN
+    Input #1, Title$, scratch$      'njs: line 1 of input
+
+    Call PrintStr("The initial inputs apply to:", True)
+    Call PrintStr(Title$ & vbCrLf, True)
+    
+    '-------------------- RUN PARAMETERS SECTION ---------------------------------
+    'INPUT RANDOM NUMBER SEED, NUMBER OF CYCLES AND REPETITIONS,
+    ' MINIMUM AND MAXIMUM AGE
+
+    Input #1, RanSeed, scratch$
+    Input #1, NRuns%, scratch$
+    Input #1, NYears%, scratch$
+    Input #1, MinAge%, MaxAge%, scratch$
+    Input #1, ConvergeCrit, scratch$
+    Input #1, Debugg$, scratch$     'njs: line 2-7 of input
+    Debugg$ = UCase$(Debugg$)
+    
+    'REDIMENSION ARRAYS
+    ReDim AEQ(MinAge% To MaxAge%)
+    ReDim Cohort(MinAge% - 1 To MaxAge%)
+    ReDim CohortStart(MinAge% - 1 To MaxAge%)
+    ReDim MatRate(MinAge% To MaxAge%)
+    ReDim MatU(MinAge% To MaxAge%)
+    ReDim NatMort(MinAge% - 1 To MaxAge%)
+    ReDim PTU(MinAge% To MaxAge%)
+
+    'TAB: added rnd(-1) to give repeatable random number
+    'sequences. If omitted, then sequences will be different each time.
+    'if randseed = 0 then sequences will be different, based
+    'on the system timer number.
+    'If Randseed <> 0 then will be repeatable. Not sure if this
+    'is the behaviour that is wanted.
+    Call Rnd(-1)
+    If RanSeed = 0 Then
+        Call Randomize  'use system timer for random seed
+    Else
+        Call Randomize(RanSeed)
+    End If
+    
+    Call PrintStr("Check rand seq " & vbCrLf & Rnd() & "  " & Rnd() & _
+                                "  " & Rnd() & vbCrLf, True)
+
+    '----- END OF RUN PARAMETERS SECTION ------------------------
+
+    '----- STOCK-RECRUIT SECTION -------------------------------
+    'GET FORM OF SPAWNER RECRUIT FUNCTION AND PARAMETERS
+    'njs     updated these explanations
+    ' BSRa = productivity parameter
+    ' BSRb = density dependent prarameter
+    ' BSRc = marine survival paramater - M^c
+    ' BSRd = freshwater survival parameter - exp(dF)(d should be entered as negative)
+    '  HOC2 - Hockey stick R=Min(aS,b)   a = producitvity b=MaxRecruits
+    '  HOC3 - R = Min(aS,) exp(dF) (freshwater index - may be used to predict smolts)
+    '  HOC4 - R= Min(aS,) M^c exp(dF)
+    '  RIC2 - Ricker R=aS exp(-bS)       a = productvity  b=1/capacity
+    '  RIC3 - R= aS exp(-bS+dF) (freshwater index - may be used to predict smolts)
+    '  RIC4 - Ricker with marine survival and freshwater survival
+    '         R=aS M^c exp(-bS+dF)
+    '  BEV2 - Beverton-Holt R=1/(b+a/S)  a = 1/productivity  b=1/MaxRecruits
+    '  BEV3 - R=1/(b+a/S) exp(dF)(freshwater index - may be used to predict smolts)
+    '  BEV4 - BH with marine survival and freshwater survival
+    '         R=1/(a+b/S)M^c exp(dF)
+
+    Input #1, SRType$, scratch$   'njs Line 8 of input
+    SRType$ = UCase$(SRType$)
+    
+    Select Case SRType$
+    Case "HOC2", "RIC2", "BEV2"
+        Input #1, BSRa, BSRb, scratch$
+        Input #1, scratch$                      'njs: added
+        Input #1, scratch$                      'njs: added
+        Input #1, scratch$                      'njs: added
+        Input #1, scratch$                      'njs: added
+        Input #1, scratch$                      'njs: added
+        Input #1, scratch$                      'njs: added
+        SRa = BSRa
+        SRb = BSRb
+        AveEnv = 1
+        
+
+    Case "HOC3", "RIC3", "BEV3"
+        Input #1, BSRa, BSRb, BSRd, scratch$
+        Input #1, scratch$                      'njs: added
+        Input #1, scratch$                      'njs: added
+        Input #1, scratch$                      'njs: added
+        Input #1, FlowAve, FlowCV, scratch$
+        Input #1, TrndCycF$, scratch$           'njs: added
+        Input #1, TCF1, TCF2, TCF3, scratch$    'njs: added
+        SRa = BSRa
+        SRb = BSRb
+        SRc = 0
+        SRd = BSRd
+        FlowSD = FlowCV * FlowAve
+        If FlowSD > 0 Then
+                GammaFlowA = FlowAve * FlowAve / (FlowSD * FlowSD)
+                GammaFlowB = (FlowSD * FlowSD) / FlowAve
+            Else
+                GammaFlowA = 0
+                GammaFlowB = 0
+        End If
+                
+        AveEnv = Exp(BSRd * FlowAve)
+    
+  
+    Case "HOC4", "RIC4", "BEV4"
+        Input #1, BSRa, BSRb, BSRc, BSRd, scratch$
+        Input #1, MarAve, MarCV, scratch$
+        Input #1, TrndCycM$, scratch$           'njs: added
+        Input #1, TCM1, TCM2, TCM3, scratch$    'njs: added
+        Input #1, FlowAve, FlowCV, scratch$
+        Input #1, TrndCycF$, scratch$           'njs: added
+        Input #1, TCF1, TCF2, TCF3, scratch$    'njs: added
+        SRa = BSRa
+        SRb = BSRb
+        SRc = BSRc
+        SRd = BSRd
+        MarSD = MarCV * MarAve
+        If MarSD > 0 Then
+                GammaMarA = MarAve * MarAve / (MarSD * MarSD)
+                GammaMarB = (MarSD * MarSD) / MarAve
+            Else
+                GammaMarA = 0
+                GammaMarB = 0
+        End If
+            
+        FlowSD = FlowCV * FlowAve
+        If FlowSD > 0 Then
+                GammaFlowA = FlowAve * FlowAve / (FlowSD * FlowSD)
+                GammaFlowB = (FlowSD * FlowSD) / FlowAve
+            Else
+                GammaFlowA = 0
+                GammaFlowB = 0
+        End If
+                
+        AveEnv = MarAve ^ BSRc * Exp(BSRd * FlowAve)
+        
+     Case Else
+        Call PrintStr("Unknown stock recruit type", True)
+        Stop
+    End Select
+    
+'depensation with DL1=depensation esc; DL2 = QET; DR % of predicted R realized at QET
+    Input #1, depen$, scratch$
+    depen$ = UCase$(depen$)
+    Input #1, DL1, DL2, DR, scratch$
+    Call PrintStr("DL1  DL2  DR ", True)
+    Call PrintStr(DL1 & "  " & DL2 & "  " & DR & vbCrLf, True)
+
+    Input #1, EscChoice$, scratch$
+    EscChoice$ = UCase$(EscChoice$)
+
+    'GET PARAMETERS TO ADD VARIABILITY TO STOCK RECRUIT FUNCTION
+    '  SRErrorA and B are used for Hoc2, Ric2 and Bev2, SRErrorA, SRErrorB and ResCorPar (optional)
+    '  are used for Hoc3, Ric3, Bev3, Hoc4, Ric4, and Bev4
+
+    Input #1, SurvScale$, scratch$
+    SurvScale$ = UCase$(SurvScale$)
+    If SurvScale$ = "YES" Then
+        Input #1, SRErrorA, SRErrorB, ResCorParameter, scratch$
+      Else
+        Input #1, scratch$
+    End If
+
+    'GET PARAMETERS FOR SMOLT TO ADULT (MARINE) SURVIVAL IF STOCK RECRUIT FUNCTION
+    '  IS FOR SMOLTS FROM SPAWNERS (FRESHWATER PRODUCTION)
+
+    Input #1, MarSurv$, scratch$
+    MarSurv$ = UCase$(MarSurv$)
+    '
+    If MarSurv$ = "YES" Then
+        Input #1, BetaMarA, BetaMarB, CorrMS, scratch$
+      Else
+        Input #1, scratch$
+    End If
+                                                                                                                                
+    '--------- END OF TOCK RECRUIT SECTION -----------------------------
+
+    '--------- FISHERY MANAGEMENT PARAMETERS ---------------------------
+    'INPUT THE NUMBER OF BREAKPOINTS AND DIMENSION ARRAYS
+    Input #1, NumBreakPoints%, scratch$
+
+    'IDENTIFY WHICH LEVEL IS THE BASE REGIME
+    Input #1, BaseRegime%, scratch$
+
+    If NumBreakPoints% >= 1 Then
+        ReDim BufTargetU(1 To NumBreakPoints% + 1)
+        ReDim EscpmntBreakPoint(1 To NumBreakPoints%)
+        ReDim TargetU(1 To NumBreakPoints% + 1)
+    Else
+        ReDim BufTargetU(1 To NumBreakPoints% + 1)
+        ReDim TargetU(1 To NumBreakPoints% + 1)
+    End If
+
+    'INPUT BREAKPOINTS AND TARGET EXPLOITATION RATES
+    For BreakPoint% = 1 To NumBreakPoints% + 1
+        If BreakPoint% <= NumBreakPoints% Then
+            Input #1, EscpmntBreakPoint(BreakPoint%), TargetU(BreakPoint%), scratch$
+        Else
+            Input #1, TargetU(BreakPoint%), scratch$
+        End If
+    Next BreakPoint%
+
+    'INPUT PARAMETERS FOR MANAGEMENT ERROR
+
+    Input #1, MgmtError$, scratch$
+    MgmtError$ = UCase$(MgmtError$)
+    'Read in dummy values if management error is No
+    Input #1, GammaMgmtA, GammaMgmtB, scratch$
+
+    '------------------ END OF FISHERY MANAGMENT INPUTS --------------------
+    Input #1, ECrit, scratch$
+    Input #1, ERecovery, EndAv%, scratch$
+    Call PrintStr("Escapement threshold levels " & vbCrLf & ECrit & "   " & ERecovery & vbCrLf, True)
+
+    'INPUT STEP SIZE AND RANGE FOR TARGET EXPLOITATION RATES OR STARTING ESCAPEMENT
+
+    'This program outputs information for a range of either exploitation rates or
+    'starting escapement levels.
+    'The BUFFER levels input below represent percentages of the base target
+    'exploitation rate or the starting escapement level.
+    '(e.g., a Buffer of .05 means that the ER will be 5% of the base target rate.)
+    'You may enter a number greater than 1.0, which means that the ER will be
+    'greater than the base target rate.  Under normal runs with 0 breakpoints,
+    'the base target rate is not used other than to determine start, end, and step
+    'levels.
+    Input #1, StepFunc$, scratch$
+    Input #1, BufferStep, scratch$
+    Input #1, BufferStart, BufferEnd, scratch$
+    
+    'INPUT LOWER AND UPPER ESCAPEMENT TEST LEVELS
+
+    'The LOWER ESCAPEMENT LEVEL (ECrit) is the escapement level used by the
+    ' program to test how often the observed escapements fall below this level.
+    'It may represent a "critical" level below which the spawner-recruit function
+    ' destabilizes, and the stock increases risk of extinction, or it could be any
+    ' level one just wanted to monitor frequency of achieving less than or equal
+    ' to that level.
+    'The UPPER ECSAPEMENT LEVEL (ERecovery) is the escapement level used to compare
+    ' against the geometric mean of the last n (EndAv) years of the run.  It may be a
+    ' management escapement goal, an interim recovery level, or some other target level.
+
+    '----------------------- BASE STOCK DATA SECTION -----------------------------
+
+    'INPUT INITIAL POPULATION SIZE BY AGE
+    ' The initial population size by age, for all ages, is used to seed the model.
+    ' In year 1, the management actions are applied to this population, and a portion of
+    ' each size class escapes.  By running the program over a range of starting population
+    ' sizes, one can determine what minimum population size (or escapement) is needed
+    ' to guarentee a probability of population viability.
+    ' NJS Although the input allows for different MaxAge% from 5, the internal workings of the
+    ' are fixed to 5 in many places.
+
+    Call PrintStr("Age Cohort start", True)
+    For Age% = MinAge% - 1 To MaxAge%
+        Input #1, CohortStart(Age%), scratch$
+        Call PrintStr(Age% & "   " & CohortStart(Age%), True)
+    Next Age%
+    Call PrintStr("", True)
+    
+    'INPUT NATURAL MORTALITY RATES
+    Call PrintStr("Age Natural mortality", True)
+    For Age% = MinAge% - 1 To MaxAge%
+        Input #1, NatMort(Age%), scratch$
+        Call PrintStr(Age% & "   " & NatMort(Age%), True)
+    Next Age%
+    Call PrintStr("", True)
+    
+    'INPUT MATURATION RATES BY AGE (AEQ will be calculated)
+    Call PrintStr("Age MatRate", True)
+    For Age% = MinAge% To MaxAge%
+        Input #1, MatRate(Age%), scratch$
+        Call PrintStr(Age% & "   " & MatRate(Age%), True)
+    Next Age%
+    Call PrintStr("", True)
+
+    'INPUT PRETERMINAL AND MATURE EXPLOITATION RATES BY AGE
+    ' These will be used to proportion target ER by age and fishery
+    Call PrintStr("Age    PTU    MatU ", True)
+    For Age% = MinAge% To MaxAge%
+        Input #1, PTU(Age%), MatU(Age%), scratch$
+        Call PrintStr(Age% & "   " & PTU(Age%) & "    " & MatU(Age%), True)
+    Next Age%
+    Call PrintStr("", True)
+    
+    'TAB: ??? renamed end$ to endd$ to avoid conflict with named "end"
+    'Should match "endofinput" with "End of input" if file inputted correctly.
+    Input #1, Endd$
+    Call PrintStr("Check End of input = " & Endd$, True)
+
+    '------------------- END OF BASE STOCK DATA SECTION --------------------------
+    'CLOSE INPUT FILE
+    Close #1
+
+End Sub
+
+'*****  GetOutFiles  *******
+'TAB: added 13 Sept. When user runs program, prompts user
+'to enter an output filename that all the outputs
+'will be written to. NOTE: this also saves a copy of the
+'input file with the same prefix. So for example, if the
+'input file was abc.rap, then by default the outputs would be
+'abc.byr, abc.esc, abc.sum and (if debugging on) abc.dbg
+'These will all be placed into the same dir as abc.rap.
+'In addition, sr.prn and TempDat.tmp are temp files
+'which are outputted during the runs. All of these files
+'are dumped into the directory of the input file.
+'By changing from the default to say XYZ (possibly in a
+'new directory), the program
+'will still write SR.prn and TempDat.tmp to the directory of
+'abc.rap (rationale being that these are big temp files
+'that you don't want multiple copies of),
+'but will make a copy of abc.rap in XYZ.rap (in
+'the new directory), and send output to files XYZ.byr,
+'XYZ.esc, XYZ.sum and (if debugging on) XYZ.dbg, these files
+'in the new directory.
+'NOTE: if any problem in getting file names (like user
+'pressed cancel, this function returns FALSE, otherwise TRUE.
+'*********************************************************
+Function GetOutFiles(InFile$, OutFileSum$, OutFileEsc$, _
+            OutFileByr$, OutFileDbg$, OutFilePrn$, _
+            OutFileTmp$, InFileCopy$) As Boolean
+    Dim NoExtensionName As String  'stores path and name, but not extension
+    Dim Position As Integer        'position of final "\" in pathname
+    Dim PathName As String         'string containing the path (including last "\")
+    Dim TempOutFile As String      'contains full path etc of returned file
+    Dim InFileNameOnly As String   'name (excl path) of input file
+    Dim OverWriteMsg As String     'text of message for user if files will be overwritten
+    Dim UserAnswer As Integer      'answer of user to whether to replace files
+    
+    'if user selects no file, or an error, then go
+    'to end and exit the program "gracefully"
+    On Error GoTo Errorhandler
+    GetOutFiles = True   'assume will get correct names
+    
+    'check that input file exists, else cause error -> exit
+    '(first sign of paranoia in programmer-TAB)
+    If Dir(InFile$) = "" Then
+        Err.Raise 57, , "Current input file does not exist"
+    End If
+    
+    'extract root name of file, less the *.rav extension
+    NoExtensionName$ = Left(InFile$, Len(InFile$) - 4)
+    TempOutFile$ = NoExtensionName$ + ".SUM"
+    
+    With CommonDialog1
+        .FileName = TempOutFile$
+        
+        ' Raise an error if cancel is pressed
+        .CancelError = True
+        
+        .DialogTitle = "Save Outputs As"
+        
+        ' Set flags: hide the "read only"box and
+        'check that entered path exists.
+        .Flags = cdlOFNHideReadOnly + cdlOFNPathMustExist
+    
+        ' Look for output files, just look for .sum for now
+        .Filter = "Output files (*.sum)|*.sum"
+        
+        ' Specify default filter = first line above
+        .FilterIndex = 1
+        
+        ' Display the dialog for Save As...
+        .ShowSave
+        
+        ' Get the selected filename
+        TempOutFile$ = .FileName
+    End With
+    
+    'set the names of all the files incl temp files,
+    'according to the infile and tempoutfile chosen
+    'temp files in same dir as infile, output files
+    'in same dir as tempoutfile
+    Call SetOutFileNames(InFile, TempOutFile, OutFileEsc$, _
+            OutFileByr$, OutFileDbg$, OutFilePrn$, _
+            OutFileTmp$, InFileCopy$)
+            
+    'Before continuing, check if any of the created files
+    'may be overwriting any existing files. If so, ask user
+    'if they indeed want to overwrite the existing files. If no,
+    'raise an error to go to error handling section at end of sub.
+    If Dir(OutFileSum$) <> "" Then
+        OverWriteMsg$ = OutFileSum$ & vbCrLf
+    End If
+    If Dir(OutFileEsc$) <> "" Then
+        OverWriteMsg$ = OverWriteMsg$ & OutFileEsc$ & vbCrLf
+    End If
+    If Dir(OutFileByr$) <> "" Then
+        OverWriteMsg$ = OverWriteMsg$ & OutFileByr$ & vbCrLf
+    End If
+    If Dir(OutFileDbg$) <> "" Then
+        OverWriteMsg$ = OverWriteMsg$ & OutFileDbg$ & vbCrLf
+    End If
+    If Dir(InFileCopy$) <> "" And InFile$ <> InFileCopy$ Then
+        OverWriteMsg$ = OverWriteMsg$ & InFileCopy$ & vbCrLf
+    End If
+    
+    'if some files will be overwritten make sure user wants
+    'to do this
+    If OverWriteMsg$ <> "" Then
+        OverWriteMsg$ = "The following output files already exist." & vbCrLf & _
+                "Do you want to replace them?" & vbCrLf & vbCrLf & _
+                OverWriteMsg$
+           
+        UserAnswer = MsgBox(OverWriteMsg$, vbYesNo + vbDefaultButton2 + vbExclamation, _
+                    "Replace Files?")
+        If UserAnswer <> vbYes Then
+            Err.Raise 76, , "Cancelled simulation runs, user did not want to overwrite output files"
+        End If
+    End If
+    
+    'make copy of input file in newly chosen directory,
+    'with newly chosen prefix too. Don't bother if user
+    'chose the same directory and prefix as the input file.
+    If InFile$ <> InFileCopy$ Then
+        Call FileCopy(InFile$, InFileCopy$)
+    End If
+    
+    Exit Function 'to avoid going through error handler section
+    
+'if problem (e.g. pressed cancel or did not want to overwrite files),
+'go straight here and exit the sub. Could add error reporting here
+Errorhandler:
+    GetOutFiles = False 'there was a problem, return false
+End Function
+
+'*****  GetRecentFiles  *********
+'TAB: Shows form with recent files from rapviability.ini,
+'prompts user to choose one, and then sets that file
+'as the input file.
+'**************************************************
+Sub GetRecentFiles()
+    With frmRecentFiles
+        .FileOfRecentFiles = RecentFiles$
+        .Show vbModal
+        If .ButtonPressed = vbOK Then
+            If .MoreFiles = True Then  'user selected "more files..."
+                InFileSelected = GetInFile(InFile, InFileSelected)
+            Else
+                ' Get the selected filename
+                InFile$ = .ChosenFile
+                
+                'Update the heading of the main form to reflect the filename
+                MainForm.Caption = InFile$ & " - RapViability " & App.Major & "." & App.Minor
+                
+                InFileSelected = True   'have got a valid input file
+                ChV.HaveChanged = False 'has not changed values compared to input file
+            End If
+            Call MenuOptionsAllowed(InFileSelected, SimulationsCompleted)
+        End If
+    End With
+    Unload frmRecentFiles
+End Sub
+
+
+'*****  InitProgress  ********
+'TAB: initialises the progress bar.
+'*****************************************
+Sub InitProgress(objProgress As clsProgress, BufMax%, _
+                NRuns%, ScaleProgress As Double)
+    ScaleProgress = BufMax% * CLng(NRuns%)
+    If ScaleProgress > 32000 Then
+        ScaleProgress = ScaleProgress / 5000
+    Else
+        ScaleProgress = 1
+    End If
+    objProgress.Max = BufMax% * CLng(NRuns%) / ScaleProgress 'set up progress bar
+    objProgress.Max = objProgress.Max + 1 'added to prevent possible problems
+    objProgress.Caption = "Running simulations..."
+    objProgress.Value = 0 'setting to 0 initialises object in this case
+End Sub
+
+'*****  Public Sub Main  ******
+'Runs program, TAB. TAB: all variable declarations added
+Public Sub Main()
+    Dim BufNum% 'counter for number of iterations
+    Dim BufMax% 'number of iterations
+    Dim Year%
+    Dim ActualU As Double
+    Dim AEQRecruits As Double    'TAB: added
+    Dim TotAEQMort As Double
+    Dim TotEscpmnt As Double
+    Dim TotAdultEscpmnt As Double
+    Dim Status%
+    Dim objProgress As New clsProgress  'handles progress bar
+    Dim ScaleProgress As Double 'in case too big for progress bar
+    Dim AEQMort() As Double     'TAB: added
+    Dim Escpmnt() As Double     'TAB: added
+    Dim TempCohort() As Double  'TAB: added
+'   Set these cumulation variables to zero at beginning
+    AveRanFlow = 0#
+    AveRanMarine = 0#
+    
+    'TAB: if input file does not exist, exit sub
+    If InFileSelected = False Then
+        Call CurrentStatus("Input file not selected...")
+        Exit Sub
+    End If
+                
+    SimulationsCompleted = False  'rerunning analysis, perhaps new. Set flag to say sims not completed
+    
+    Call PrintStr("", , True)   'clear output text on main form
+    
+    'TAB: changed to reflect the internal Visual Basic designation of the
+    'version number, which can be changed in Project->Properties->Version number
+    Version$ = "Version " & App.Major & "." & App.Minor & "." & App.Revision
+    Call PrintStr(Version$ & vbCrLf, True)
+    
+    'READ INPUT DATA AND CALCULATE AEQs
+    Call GetInput
+    
+    'if user chose to change pars, using menu option
+    'Data->Change Parameters, this is where they are changed.
+    'This may affect values of NRuns, NYears, TargetU,
+    'BufferStart, BufferStep and BufferEnd...
+    'also need to redim arrays in here.
+    Call OverwriteInput
+    
+    'TAB: next two lines moved to after GetInput
+    'Also, replaced file names with variables to ensure
+    'that these temp files are in the same directory as the
+    'input and output files. The file names are gotten in
+    'the sub "GetFileNames"
+    Open OutFilePrn$ For Output As #10
+    
+    'SET RANDOM ACCESS FILE FOR STORAGE
+    'TAB: if tempdat.tmp exists, delete it. Then open it for random
+    'access.
+    If Dir(OutFileTmp$) <> "" Then
+        Kill OutFileTmp$
+    End If
+    Open OutFileTmp$ For Random As #4 Len = Len(YearStats)
+    
+    If Debugg$ = "YES" Then
+        Open OutFileDbg$ For Output As #5   'TAB, name of debugfile in GetFileNames
+        Print #5, "Debug File"
+    End If
+    
+    Call AEQcalc
+    
+    'COMPUTE FACTOR TO TRANSLATE AEQ RECRUITMENT TO AGE 1
+    RecruitsAtAge1 = Recruits()
+    
+    '----------------- PROGRAM EXECUTION SECTION ----------------------------------
+    'TAB changed this loop so counting over integers and not
+    'adding floating point numbers. Previous could cause troubles
+    'where for example BufferEnd = 2.5 and Buffer = 2.5000000000001
+    'BufNum% = 0  'TAB deleted, OLD
+    'For Buffer = BufferStart To BufferEnd Step BufferStep
+    BufMax% = (BufferEnd - BufferStart) / BufferStep + 1
+    'TAB: initialise the progress bar
+    Call InitProgress(objProgress, BufMax%, NRuns%, ScaleProgress)
+    
+    Buffer = BufferStart
+    For BufNum% = 1 To BufMax%
+        
+        'TAB: added, update text on status bar
+        Call CurrentStatus("From " & BufferStart & " to " & BufferEnd & " by " & BufferStep _
+                    & " At Step = " & Format(Buffer, "##0.###"))
+                    
+        'INITIALIZE BUFFER SPECIFIC PARAMETERS AND ARRAYS
+        Call BufferInit(Buffer)
+        
+        Call PrintStr("a " & SRa & "  b  " & SRb & _
+              "  Max Recruits  " & MxR, True)
+        
+        'REPETITION LOOP
+        For Rep% = 1 To NRuns%
+            
+            'TAB: update progress bar and also check whether
+            'Cancel has been pressed or not.
+            If UpdateProgress(objProgress, NRuns%, _
+                        BufNum%, Rep%, ScaleProgress) = False Then
+                GoTo EndSub 'cancel pressed, use lovely GoTo statement to go to the end of the sub
+            End If
+                    
+            'INITIALIZE REPETITION SPECIFIC PARAMETERS AND ARRAYS
+            Call RepInit
+            If Rep% = 1 Then
+                FirstRanMarine = LastRanMarine
+                FirstRanFlow = LastRanFlow
+            End If
+        
+            'BEGIN Year LOOP
+            For Year% = 1 To NYears%
+            
+                'NATURAL MORTALITY PROCESS
+                Call CompNatMort
+                
+                'COMPUTE ESCAPEMENT USING BASE LEVEL EXPLOITATION RATE
+                'TAB: note these three arrays never declared anywhere
+                'declarations added to start of sub.
+                ReDim AEQMort(MinAge% To MaxAge%)    'TAB: changed from "2 to MaxAge%"
+                ReDim Escpmnt(MinAge% To MaxAge%)    'TAB: changed from "2 to MaxAge%"
+                ReDim TempCohort(MinAge% To MaxAge%) 'TAB: changed from "2 to MaxAge%"
+                
+                Call CompEscpmnt(BaseRegime%, ActualU, AEQMort(), _
+                            Escpmnt(), TotAEQMort, TotEscpmnt, _
+                            TotAdultEscpmnt, TempCohort())
+                
+                                
+                'CHECK STOCK STATUS
+                Call CompStockStatus(TotAdultEscpmnt, Status%)
+                
+                'ADJUST REGIME IF WARRANTED
+                If Status% <> BaseRegime% Then
+                    Call CompEscpmnt(Status%, ActualU, AEQMort(), Escpmnt(), TotAEQMort, TotEscpmnt, TotAdultEscpmnt, TempCohort())
+                End If
+                
+                'SAVE YEAR DATA
+                Call SaveYearData(BufNum%, Rep%, Year%, AEQMort(), Escpmnt(), TotAEQMort, TotEscpmnt, TotAdultEscpmnt)
+                
+                'AGE COHORT
+                Call CompAgeCohort(TempCohort())
+                
+                'COMPUTE RECRUITS FROM ESCAPEMENT
+                Call CompRecruits(TotEscpmnt, TotAdultEscpmnt, AEQRecruits, Year%)
+                
+                'TAB: added, note that the textbox will die if the num
+                'of repetitions is high. Therefore changed to debug.print
+                'could be sent to output file instead...
+                'moved from above so that the AEQrecruits are calculated before
+                'being output (they are calculated in CompRecruits)
+                If Year% >= 20 Then
+                    'Debug.Print (Year% & "  " & Rep% & "  " & _
+                       TotEscpmnt & "  " & AEQRecruits)
+                End If
+                
+            Next Year%
+        Next Rep%
+        Buffer = Buffer + BufferStep
+    Next BufNum%
+    objProgress.Value = objProgress.Max  'reached final value
+    
+    'COMPUTE STATISTICS
+    Call CurrentStatus("Computing and saving statistics...")
+    If CompStats(BufMax%) = False Then
+        GoTo EndSub   'user pressed cancel, exit sub
+    End If
+    
+    'SAVE SUMMARY RESULTS
+    Call CurrentStatus("Saving summary...")
+    Call SaveSummary
+    
+    'SAVE ESCAPEMENT DATA
+    Call CurrentStatus("Saving escapement data...")
+    Call SaveEscpmntData
+    
+    'SAVE BROOD YEAR EXPLOITATION RATE DATA
+    Call CurrentStatus("Saving by year data...")
+    Call SaveBYrData
+    
+    'save the name of this input file to the rapviability.ini file
+    'and set all relevant flags showing that run was success
+    Call SaveMostRecentFile
+    Call CurrentStatus("Finished all the runs")  'updates status bar
+    SimulationsCompleted = True  'flag that says completed successfully.
+EndSub:   'jump straight to here if cancel pressed
+    Close    'close open files
+    'delete temp files to save space
+    If Dir(OutFilePrn$) <> "" Then
+        Kill OutFilePrn$
+    End If
+    If Dir(OutFileTmp$) <> "" Then
+        Kill OutFileTmp$
+    End If
+    
+End Sub
+
+'*****  MenuOptionsAllowed *******
+'TAB: added 8 Sept 01. Controls the menu options that are
+'allowed and disallowed. For example can only look at input file
+'when input file has been selected, and can only look at
+'results when simulations have been run.
+'***********************************************
+Sub MenuOptionsAllowed(InFileSelected As Boolean, _
+                        SimulationsCompleted As Boolean)
+    mnuDataCheckInputValues.Enabled = InFileSelected
+    mnuDataEditInputFile.Enabled = InFileSelected
+    mnuRunRun.Enabled = InFileSelected
+    mnuDataNewParameters.Enabled = InFileSelected
+    
+    mnuResultsByYear.Enabled = SimulationsCompleted
+    mnuResultsDebugging.Enabled = SimulationsCompleted
+    mnuResultsEscapement.Enabled = SimulationsCompleted
+    mnuResultsSummary.Enabled = SimulationsCompleted
+    'if user did not want debugging then there is no
+    'debug file. Do not let user open it.
+    If SimulationsCompleted And Debugg$ = "NO" Then
+        mnuResultsDebugging.Enabled = False
+    End If
+End Sub
+
+'*****  OverwriteInput***********
+'TAB: Added 24 Sept 01. If user chose Data->Change Parameters
+'this procedure will update the global parameters
+'and replace them with the changed parameters.
+'*********************************************************************
+Private Sub OverwriteInput()
+    Dim NumBuf As Integer
+    
+    With ChV
+        If .HaveChanged = True Then
+            NRuns% = .NumRuns
+            NYears% = .NumYears
+            BufferStep = .BufferStep
+            BufferStart = .BufferStart
+            BufferEnd = .BufferEnd
+        End If
+    End With
+
+    NumBuf% = (BufferEnd - BufferStart) / BufferStep + 1
+
+    ReDim AvgAEQMort(1 To NumBuf%)
+    ReDim AvgBYrHR(1 To NumBuf%, -1 To NYears% - 5)
+    ReDim AvgCaHR(1 To NumBuf%)
+    ReDim AvgECrit(1 To NumBuf%)
+    ReDim AvgEscpmnt(1 To NumBuf%, 1 To NYears%)
+    ReDim BufAvgBYrHR(1 To NumBuf%)
+    ReDim MaxBYrHR(1 To NumBuf%, -1 To NYears% - 5)
+    ReDim MaxEscpmnt(1 To NumBuf%, 1 To NYears%)
+    ReDim MinBYrHR(1 To NumBuf%, -1 To NYears% - 5)
+    ReDim MinEscpmnt(1 To NumBuf%, 1 To NYears%)
+    ReDim PropRec(1 To NumBuf%)
+    ReDim PropExt(1 To NumBuf%)
+    
+End Sub
+
+'*****  PrintStr  ******
+'TAB: this sub takes the input text string and
+'outputs it to the text box in the middle of the
+'form. It can easily be changed to send the text
+'elsewhere. To view text in the Immediate window,
+'merely change this to debug.print (str)
+'To add a new line, end the string "xxx" with & vbcrlf
+'******************************************************************
+Sub PrintStr(str As String, Optional NewLine As Boolean, _
+                Optional ClearWindow As Boolean)
+    With Text1
+        If ClearWindow = True Then
+            .Text = ""
+        End If
+        If NewLine = True Then
+            .Text = .Text & str & vbCrLf
+        Else
+            .Text = .Text & str
+        End If
+    End With
+End Sub
+
+'***** RanNormErr **********
+'Function converted from C++ routine gasdev.cpp from Numerical Recipes
+'(Press et al.). Returns a random normal number with mean 0 and sd 1.
+'Uses the system random number generator.
+'Renamed by TA Branch after conversion 3/8/99
+'TAB: 20 Aug 02
+'The original version is more efficient because it collects two norm random
+'numbers in each iteration, but wreaks havoc with repeatable sequences
+'of random numbers. In this version, I only use one ran norm number (v2) and
+'discard v1 instead of saving it for the next call to RanNormErr. Remove
+'the commented out parts to restore the more efficient version.
+'****************************************************************************
+Public Function RandNormErr() As Double
+    'Static iset As Long
+    'Static gset As Double
+    Dim fac As Double
+    Dim r As Double
+    Dim v1 As Double
+    Dim v2 As Double
+    
+    If CONSTRUN = True Then
+        RandNormErr = 0#     'TAB: added for parallel, delete this line for runs
+    Else
+    'If (iset = 0) Then
+        Do
+            v1 = 2# * Rnd() - 1#
+            v2 = 2# * Rnd() - 1#
+            r = v1 * v1 + v2 * v2
+        Loop While (r >= 1# Or r = 0#)
+        fac = (-2# * Log(r) / r) ^ 0.5
+    '    gset = v1 * fac
+    '    iset = 1
+        RandNormErr = v2 * fac
+    'Else
+    '    iset = 0
+    '    RandNormErr = gset
+    'End If
+    End If
+End Function
+
+
+'*****  RandNormErr  ******
+' Define a normally distributed error variable with mean = 0 & Stddev = 1.
+' Source is Frank McCleskey, 1985.  Normal Random Number Generator, in
+'   Access, March/April 1985, pgs 13-14.
+'TAB: comment: there is a more efficient random number generator
+'from Numerical Recipes for which I have a translation. Does not
+'require expensive calls to sqr, log and cos.
+'TAB: 20 Sept 02. As expected, discovered a problem here, the VB
+'random num generator generates "0" every now and again, and log(0) = ERROR
+'fixed in function RandNormErr, this OLD function retained for completeness
+'******************************************
+Function RandNormErrOLD() As Double
+    Dim x1 As Double:     Dim x2 As Double  'added for debugging
+    If CONSTRUN = True Then
+        RandNormErrOLD = 0#     'TAB: added for parallel, delete this line for runs
+    Else
+        'DEBUG
+        x1 = Rnd
+        x2 = Rnd
+        RandNormErrOLD = Sqr(-2 * Log(x1)) * Cos(2 * 3.14159 * x2)
+        'OLD RandNormErr = Sqr(-2 * Log(Rnd)) * Cos(2 * 3.14159 * Rnd)
+    End If
+End Function
+
+
+'*****  Recruits  *****
+Function Recruits() As Double
+'Compute factor to convert calculated spawner equivalent
+'production to age cohort (source is PSC Chinook Model).
+    
+    Dim Age%   'TAB: changed declaration from static to Dim
+    Dim Tmp As Double     'TAB: added declaration
+    Dim X9 As Double      'TAB: added declaration
+    
+    Tmp = 0
+    X9 = 1 - NatMort(1)
+    For Age% = MinAge% To MaxAge%
+            X9 = X9 * (1 - NatMort(Age%))
+            Tmp = Tmp + X9 * MatRate(Age%)
+            X9 = X9 * (1 - MatRate(Age%))
+    Next Age%
+    Recruits = Tmp
+
+End Function
+
+'*****  RepInit  *****
+'******************************************************************
+Sub RepInit()
+    Dim Age%
+    
+    For Age% = MinAge% - 1 To MaxAge%
+        Cohort(Age%) = CohortStart(Age%)
+    Next Age%
+
+    'SET INITIAL SEED FOR AUTOCORRELATED RESIDUALS
+    If SurvScale$ = "YES" Then
+        LastRanError = RandNormErr() * SRErrorB ^ 0.5
+    End If
+
+    'SET INITIAL VALUES FOR LAST RANMARINE AND RANFLOW
+    Select Case SRType$
+    Case "RIC3"
+        If GammaFlowA + GammaFlowB = 0 Then
+                LastRanFlow = FlowAve
+            ElseIf TCF2 > 0 Then
+                LastRanFlow = TCF2
+            Else
+                LastRanFlow = GammaSample(GammaFlowA, GammaFlowB)
+        End If
+'        FirstRanFlow = LastRanFlow
+    Case "HOC4", "BEV4", "RIC4"
+        If GammaMarA + GammaMarB = 0 Then
+                LastRanMarine = MarAve
+            ElseIf TCM2 > 0 Then
+                LastRanMarine = TCM2
+            Else
+                LastRanMarine = GammaSample(GammaMarA, GammaMarB)
+        End If
+        If GammaFlowA + GammaFlowB = 0 Then
+                LastRanFlow = FlowAve
+            ElseIf TCF2 > 0 Then
+                LastRanFlow = TCF2
+            Else
+                LastRanFlow = GammaSample(GammaFlowA, GammaFlowB)
+        End If
+'        FirstRanMarine = LastRanMarine
+'        FirstRanFlow = LastRanFlow
+    End Select
+    
+'   AveRanFlow = 0#
+'   AveRanMarine = 0#
+    
+    
+End Sub
+
+'*****   SaveBYrData  ******
+Sub SaveBYrData()
+    Dim BufNum%
+    Dim Byr%
+    Dim PBff As Double
+    Dim EBff As Double
+    
+    Open OutFileByr$ For Output As #3
+    Select Case StepFunc$
+            Case "Pop"
+                PBff = Buffer
+                EBff = 1
+            Case "ER"
+                PBff = 1
+                EBff = Buffer
+            Case Else
+                Call PrintStr("Unknown step selection", True)
+                Stop
+    End Select
+    BufNum% = 0
+    For Buffer = BufferStart To BufferEnd Step BufferStep
+        BufNum% = BufNum% + 1
+        
+        For Byr% = -1 To NYears% - 5
+
+            Print #3, DecimalFormat(TargetU(BaseRegime%) * EBff, "#0.00", 6);
+            
+            Print #3, DecimalFormat(BSRb * PBff, "#0", 7);
+            Print #3, DecimalFormat(Byr%, "###0", 7);
+            Print #3, DecimalFormat(MinBYrHR(BufNum%, Byr%), "#0.000", 8);
+            Print #3, DecimalFormat(AvgBYrHR(BufNum%, Byr%), "#0.000", 8);
+            Print #3, DecimalFormat(MaxBYrHR(BufNum%, Byr%), "#0.000", 8)
+        Next Byr%
+    Next Buffer
+
+    Close #3
+End Sub
+
+
+'*****  SaveEscpmntData  *****
+'TAB: note, changed the file open number in this sub for
+'OutFileEsc from #3 to #6 because the BYR file was opened
+'as #3 in another sub.
+'********************************************************
+Sub SaveEscpmntData()
+    Dim BufNum%
+    Dim PBff As Double
+    Dim EBff As Double
+    Dim Year%
+    
+    Open OutFileEsc$ For Output As #6
+    BufNum% = 0
+    For Buffer = BufferStart To BufferEnd Step BufferStep
+        BufNum% = BufNum% + 1
+
+        Select Case StepFunc$
+        Case Is = "Pop"
+            PBff = Buffer
+            EBff = 1
+        Case Is = "ER"
+            PBff = 1
+            EBff = Buffer
+        Case Else
+            Call PrintStr("Unknown step selection", True)
+            Stop
+        End Select
+
+        For Year% = 1 To NYears%
+            Print #6, DecimalFormat(TargetU(BaseRegime%) * EBff, "#0.00", 6);
+            Print #6, DecimalFormat(BSRb * PBff, "####0", 7);
+            Print #6, DecimalFormat(Year%, "###0", 6);
+            Print #6, DecimalFormat(MinEscpmnt(BufNum%, Year%), "######0", 9);
+            Print #6, DecimalFormat(AvgEscpmnt(BufNum%, Year%), "######0", 9);
+            Print #6, DecimalFormat(MaxEscpmnt(BufNum%, Year%), "######0", 9)
+        Next Year%
+    Next Buffer
+
+    Close #6
+
+End Sub
+
+'***** SaveMostRecentFile *******
+'TAB: added 9 Sept 2001. At the end of program operation
+'this saves the name of the most recently used input file
+'to the file c:\windows\rapviability.ini
+'This will be read in at the start of next execution to enable
+'rapid re-running of the most recent simulation using the
+'GetInputFile routines.
+'*****************************************************
+Sub SaveMostRecentFile()
+    Dim scratch(1 To 300) As String     'temp var to hold filenames
+    Dim i As Integer   'counter stores num of unique files
+    Dim j As Integer   'counter
+    
+    'if file exists then read in all file names except
+    'those that match the current input file and store
+    'the number of different input files in "i"
+    If Dir(RecentFiles$) <> "" Then
+        
+        Open RecentFiles$ For Input As #11
+        i = 0
+        Do While Not EOF(11)
+            i = i + 1
+            Input #11, scratch(i)
+            'check to see if current file is the same
+            'as one of the files in the list. If so,
+            'overwrite that file on next read
+            If scratch(i) = InFile$ Then
+                i = i - 1
+            End If
+        Loop
+        Close #11
+    End If
+    'note that i stores the number of files now.
+    
+    If InFileSelected Then
+        
+        Open RecentFiles$ For Output As #11
+        Print #11, InFile$   'write current file first
+        For j = 1 To i       'then write other files
+            Print #11, scratch(j)
+        Next j
+        Close #11
+    End If
+End Sub
+
+'*****  SaveSummary  ******
+'********************************************************************
+Sub SaveSummary()
+    Dim Break%
+    Dim Age%
+    Dim BufNum%
+    Dim BufMax%
+    Dim PBff As Double
+    Dim EBff As Double
+    
+    Open OutFileSum$ For Output As #2
+
+    'PRINT HEADER INFORMATION
+    Print #2, "RAPVIABILITY.vbp (Visual Basic 6) "; Version$; Tab(55); "Date:"; Date$
+    Print #2, "Title:"; Tab(15); Title$
+    Print #2, "Input File:"; Tab(20); InFile$
+    Print #2, "Copy of Input File:"; Tab(20); InFileCopy$
+    Print #2,
+    
+    Print #2, "Basic Simulation Input Parameters:"
+    Print #2, Tab(5); "# of Years="; NYears%; " # of Reps="; NRuns%;
+    Print #2, " HR Conv.Crit="; ConvergeCrit; " Seed"; RanSeed
+    Print #2, " Range start "; BufferStart; " end "; BufferEnd; " by "; BufferStep
+    Print #2,
+    
+    Print #2, "Stock Recruit Function Input Parameters:"
+    Print #2, Tab(5); "Function Type:"; Tab(20); SRType$
+    
+    Select Case SRType$
+    Case "HOC2"
+            Print #2, Tab(3); "Recruits = min(a*Spawners, b)"
+            Print #2, Tab(5); "a=productivity="; BSRa; Tab(25); "b=maxrecruits="; BSRb
+    Case "HOC3"
+            Print #2, Tab(3); "Recruits = min(a*Spawners, b)* exp(d*FWindex)"
+            Print #2, Tab(5); "a=productivity="; BSRa; "b=maxrecruits="; BSRb; Tab(35); "d=FW parameter= "; BSRd
+    Case "HOC4"
+            Print #2, Tab(3); "Recruits = min(a*Spawners, b)* exp(d*FWindex) * MarineIndex^c"
+            Print #2, Tab(5); "a=productivity="; BSRa; "b=maxrecruits="; BSRb; "c=MSparameter="; BSRc; "d=FWparameter= "; BSRd
+            
+    Case "RIC2"
+            Print #2, Tab(3); "Recruits = a * Spawners * exp(-Spawners/b)"
+            Print #2, Tab(5); "a=productivity="; BSRa; Tab(25); "b=capacity="; BSRb
+    Case "RIC3"
+            Print #2, Tab(3); "Recruits = a * Spawners * exp(-Spawners/b + d*FWindex)"
+            Print #2, Tab(5); "a=productivity="; BSRa; "b=capacity="; BSRb; "d=FWparameter= "; BSRd
+    Case "RIC4"
+            Print #2, Tab(3); "Recruits = a * Spawners * exp(-Spawners/b + d*FWindex) * MarineIndex^c"
+            Print #2, Tab(5); "a=productivity="; BSRa; "b=capacity="; BSRb; "c=MSparameter="; SRc; "d=FW parameter= "; SRd
+    Case "BEV2"
+            Print #2, Tab(3); "Recruits = 1/[(1/b) + 1/(a*Spawners)] "
+            Print #2, Tab(5); "a=productivity="; BSRa; Tab(25); "b=maxrecruits"; BSRb
+    Case "BEV3"
+            Print #2, Tab(3); "Recruits = 1/[(1/b) + 1/(a*Spawners)] * exp(d*FWindex)"
+            Print #2, Tab(5); "a=productivity="; BSRa; "b=maxrecruits"; BSRb; "d=FWparameter= "; BSRd
+    Case "BEV4"
+            Print #2, Tab(3); "Recruits = 1/[(1/b) + 1/(a*Spawners)] * exp(d*FWindex) * MarineIndex^c"
+            Print #2, Tab(5); "a=productivity="; BSRa; "b=maxrecruits"; BSRb; "c=MSparameter"; BSRc; "d=FWparameter= "; BSRd
+    'TAB: added next three lines in keeping with other case...select statements
+    Case Else
+        Call PrintStr("Unknown stock recruit type", True)
+        Stop
+    End Select
+    
+    Print #2,
+
+    If SurvScale$ = "YES" Then
+        Select Case SRType$
+        Case "HOC2", "RIC2", "BEV2"
+            Print #2, "Stock-Recruit Error Parameters (gamma distr.) [R=f(s)*e]:"
+            Print #2, Tab(5); "A="; SRErrorA; Tab(30); "B="; SRErrorB
+            Print #2,
+        
+        Case "HOC3", "RIC3", "BEV3", "HOC4", "RIC4", "BEV4"
+            Print #2, "Stock-Recruit Error Parameters [R=f(S)*exp(e)]:"
+            Print #2, Tab(5); "MSE="; SRErrorB; Tab(30); "ResCor="; ResCorParameter
+            Print #2,
+        Case Else
+            Print #2, SRType$
+        End Select
+    End If
+
+    If depen$ = "YES" Then
+        Print #2, "Depensation at escap:"; DL1; "QET:"; DL2; "fraction of depensation at QET"; DR
+        Print #2,
+    End If
+    
+    If MarSurv$ = "YES" Then
+        Select Case SRType$
+        Case "HOC2", "RIC2", "BEV2", "HOC3", "RIC3", "BEV3"
+            Print #2, "Smolt to Adult Survival Rate Parameters:"
+            Print #2, Tab(5); "Beta_A="; BetaMarA; Tab(35); "Beta_B="; BetaMarB
+            Print #2,
+        Case Else
+            Print #2, "Should not be using this for "; SRType$
+            Print #2,
+        End Select
+    End If
+    
+    BufMax% = (BufferEnd - BufferStart) / BufferStep + 1  'TAB: added; NJS moved up
+
+
+    '  njs  cases were mixed in following two if statements.  Also added print TrndCyc
+    'TAB: query whether the RIC3 and RIC4 are indeed in the correct order
+    'in njs corrections, RIC4 came BEFORE RIC3, not sure if intended.
+    If SRType$ = "HOC3" Or SRType$ = "RIC3" Or SRType$ = "BEV3" Then
+        Print #2, "Freshwater Survival Parameters:"
+        Print #2, Tab(5); "Gamma A="; GammaFlowA; Tab(35); "Gamma B="; GammaFlowB
+        Print #2, Tab(5); "mean="; GammaFlowA * GammaFlowB; Tab(35); "var="; GammaFlowB * GammaFlowB * GammaFlowA
+        Print #2, Tab(5); TrndCycM$; TCF1; TCF2; TCF3
+        Print #2, Tab(5); "First Flow index generated = "; FirstRanFlow
+        Print #2, Tab(5); "Average Flow index generated = "; AveRanFlow / NYears% / NRuns% / BufMax%
+        Print #2,
+    End If
+    
+    If SRType$ = "HOC4" Or SRType$ = "RIC4" Or SRType$ = "BEV4" Then
+        Print #2, "Marine Survival Parameters:"
+        Print #2, Tab(5); "Gamma A="; GammaMarA; Tab(35); "Gamma B="; GammaMarB
+        Print #2, Tab(5); "mean="; MarAve; Tab(35); "st dev="; MarSD
+        Print #2, Tab(5); TrndCycM$; TCM1; TCM2; TCM3
+        Print #2, Tab(5); "First Marine index generated = "; FirstRanMarine
+        Print #2, Tab(5); "Average Marine index generated = "; AveRanMarine / NYears% / NRuns% / BufMax%
+        Print #2,
+        Print #2, "Freshwater Survival Parameters:"
+        Print #2, Tab(5); "Gamma A="; GammaFlowA; Tab(35); "Gamma B="; GammaFlowB
+        Print #2, Tab(5); "mean="; FlowAve; Tab(35); "st dev="; FlowSD
+        Print #2, Tab(5); TrndCycF$; TCF1; TCF2; TCF3
+        Print #2, Tab(5); "First Flow index generated = "; FirstRanFlow
+        Print #2, Tab(5); "Average Flow index generated = "; AveRanFlow / NYears% / NRuns% / BufMax%
+        Print #2,
+    End If
+
+    Print #2, "Fishery Regime Parameters:"
+    If NumBreakPoints% >= 1 Then
+        For Break% = 1 To NumBreakPoints%
+            Print #2, Tab(5); "Breakpoint",
+            Print #2, Format(Break%, "##")
+            Print #2, Tab(7); "HR Below Breakpoint="; TargetU(Break%)
+            Print #2, Tab(7); "Escapement="; EscpmntBreakPoint(Break%)
+            Print #2,
+        Next Break%
+        Print #2, Tab(7); "HR Above BreakPoint="; TargetU(NumBreakPoints% + 1)
+        Print #2,
+    Else
+        Print #2, Tab(5); "Base ER = "; TargetU(BaseRegime%)
+    End If
+
+    If MgmtError$ = "YES" Then
+        Print #2, "Management Variability Parameters:"
+        Print #2, Tab(5); "Gamma A="; GammaMgmtA; Tab(35); "Gamma B="; GammaMgmtB
+        Print #2, Tab(5); "mean="; GammaMgmtA * GammaMgmtB; Tab(35); "var="; GammaMgmtB * GammaMgmtB * GammaMgmtA
+        Print #2,
+    End If
+
+    Print #2, "AEQ for age class"
+    For Age% = MinAge% To MaxAge%
+        Print #2, Tab(5); "Age"; Age%; "AEQ ="; AEQ(Age%)
+    Next Age%
+    Print #2, "Recruits At Age 1", RecruitsAtAge1
+    Print #2,
+    Print #2, "Regime Evaluation Parameters:"
+    Print #2, Tab(5); "Lower Escapement Level (LEL)="; ECrit
+    Print #2, Tab(5); "Upper Escapement Level (UEL)="; ERecovery
+    If SRType$ = "RIC2" Or SRType$ = "RIC3" Or SRType$ = "RIC4" Then
+        Print #2, Tab(5); "Max Return (under average variability) ="; BSRa * AveEnv * BSRb / 2.71828
+      Else
+        Print #2, Tab(5); "Max Return (under average variability) ="; BSRb * AveEnv
+    End If
+    Print #2,
+
+    Print #2, "SUMMARY STATISTICS"
+    Print #2, "All statistics are averaged over repetitions"
+    Print #2, " . . . .                          __________Escapement___________"
+    Print #2, ".   b     Total-Exploit.-Rate . . #fish  %runs   %yrs   %runs   1st LastYrs  pop_size."
+    Print #2, ". param.  TgtER   CYrER   BYrER   Mort. extnct   <LEL end>UEL  Year   Ave.   at_equil. "
+
+    'TAB: changed format of loop since it used to rely on whether
+    'Buffer being >= to bufferstart plus some buffersteps.
+    'Since these are real numbers, it could result in finishing one
+    'loop too early.
+    
+    Buffer = BufferStart   'TAB: added
+    For BufNum% = 1 To BufMax%   'TAB: added
+      Select Case StepFunc$
+        Case "Pop"
+            PBff = Buffer
+            EBff = 1
+        Case "ER"
+            PBff = 1
+            EBff = Buffer
+        Case Else
+            Call PrintStr("Unknown step selection", True)
+            Stop
+      End Select
+        Print #2, DecimalFormat(BSRb * PBff, "######0", 8);
+        Print #2, DecimalFormat(TargetU(BaseRegime%) * EBff, "###0.00", 7);
+        Print #2, DecimalFormat(AvgCaHR(BufNum%), "###0.000", 8);
+        Print #2, DecimalFormat(BufAvgBYrHR(BufNum%), "###0.000", 8);
+        Print #2, DecimalFormat(AvgAEQMort(BufNum%), "######0", 8);
+        Print #2, DecimalFormat(100 * PropExt(BufNum%), "####0.0", 7);
+        Print #2, DecimalFormat(100 * AvgECrit(BufNum%), "####0.0", 7);
+        Print #2, DecimalFormat(100 * PropRec(BufNum%), "####0.0", 7);
+        Print #2, DecimalFormat(AvgEscpmnt(BufNum%, 1), "#######0", 8);
+        Print #2, DecimalFormat(AvgEscpmnt(BufNum%, NYears%), "#######0", 7);
+  
+      
+      If StepFunc$ = "Pop" Then
+         ' njs MxR adjusted for average environmental conditions
+          Select Case SRType$
+            Case Is = "HOC2", "HOC3", "HOC4"
+              Print #2, DecimalFormat(PBff * BSRb * AveEnv * (1 - TargetU(BaseRegime%)), "########", 8);
+            Case Is = "RIC2", "RIC3", "RIC4"
+              Print #2, DecimalFormat(PBff * BSRb * Log(AveEnv * BSRa * (1 - TargetU(BaseRegime%))), "########", 8);
+            Case Is = "BEV2", "BEV3", "BEV4"
+              Print #2, DecimalFormat(PBff * BSRb * AveEnv * (1 - TargetU(BaseRegime%) - ((1 / BSRa) * AveEnv)), "########", 8);
+            Case Else
+              Print #2,
+          End Select
+        End If
+        Print #2,    'new line
+        Buffer = Buffer + BufferStep   'TAB: added
+    Next BufNum%
+
+    Close #2
+
+End Sub
+
+
+'*****  SaveYearData  ******
+'******************************************************************
+Sub SaveYearData(BufNum%, Rep%, Year%, AEQMort() As Double, _
+            Escpmnt() As Double, Mort As Double, _
+            TotEscpmnt As Double, TotAdultEscpmnt As Double)
+    Dim NumPerBuf&
+    Dim NumPerRep&
+    Dim RecNumber&
+    Dim HR As Double
+    
+    'njs  added check for demoninator being zero and moved debug print up
+    If (Mort + TotEscpmnt) > 0.000000001 Then
+        HR = Mort / (Mort + TotEscpmnt)
+    Else
+        HR = 0
+    End If
+    If Debugg$ = "YES" Then
+        Print #5, BufNum%, Rep%, Year%, Mort, TotEscpmnt, HR
+    End If
+    
+    NumPerBuf& = CLng(NRuns%) * NYears%   'TAB: added clng to tell VB that result is not integer, otherwise int*int=int->overflow->dies
+    NumPerRep& = NYears%
+    RecNumber& = (BufNum% - 1) * NumPerBuf& + (Rep% - 1) * NumPerRep& + Year%
+    YearStats.AEQMort = Mort
+    YearStats.Escpmnt = TotEscpmnt
+    YearStats.CalendarHR = HR
+    YearStats.Age2AEQMort = AEQMort(2)
+    YearStats.Age3AEQMort = AEQMort(3)
+    YearStats.Age4AEQMort = AEQMort(4)
+    YearStats.Age5AEQMort = AEQMort(5)
+    YearStats.Age2Escpmnt = Escpmnt(2)
+    YearStats.Age3Escpmnt = Escpmnt(3)
+    YearStats.Age4Escpmnt = Escpmnt(4)
+    YearStats.Age5Escpmnt = Escpmnt(5)
+
+    Put #4, RecNumber&, YearStats
+
+End Sub
+
+'*****  SetOutFileNames  ******
+'Given the input filename and the name of the
+'.sum output file, this sets the names of all the temp
+'output files and the real output files.
+'Used by GetOutFiles and also by GetCommandLine
+'************************************************************************
+Sub SetOutFileNames(InFile$, TempOutFile$, OutFileEsc$, _
+            OutFileByr$, OutFileDbg$, OutFilePrn$, _
+            OutFileTmp$, InFileCopy$)
+    Dim NoExtensionName As String  'stores path and name, but not extension
+    Dim Position As Integer        'position of final "\" in pathname
+    Dim PathName As String         'string containing the path (including last "\")
+    Dim InFileNameOnly As String   'name (excl path) of input file
+    
+    'still want SR.prn and TempDat.tmp to be in same
+    'directory as the input file
+    Position = InStrRev(InFile$, "\")   'find posn of last "\"
+    PathName = Left(InFile$, Position)  'extract path name
+    OutFilePrn$ = PathName & "SR.prn"
+    OutFileTmp$ = PathName & "TempDat.tmp"
+    InFileNameOnly$ = Right(InFile$, Len(InFile$) - Position)
+    
+    'Get directory of output files, make copy of input
+    'file in output directory
+    Position = InStrRev(TempOutFile$, "\")   'find posn of last "\"
+    PathName = Left(TempOutFile$, Position)  'extract path name
+    'extract file name
+    NoExtensionName$ = Left(TempOutFile$, Len(TempOutFile$) - 4)
+   
+    'SET OUTPUT FILES
+    OutFileSum$ = NoExtensionName$ + ".sum"
+    OutFileEsc$ = NoExtensionName$ + ".esc"
+    OutFileByr$ = NoExtensionName$ + ".byr"
+    OutFileDbg$ = NoExtensionName$ + ".dbg"
+    InFileCopy$ = NoExtensionName$ & ".rav"
+End Sub
+    
+
+'*****  ShowInputDataForm *******
+'Added by TAB 31 August. Allows the user to visually see all
+'the data that has been loaded from the input file. Ultimately,
+'of course, it may be possible to change the input data, and
+'to save the data from this form into another input file.
+'I leave that as an exercise for the interested reader.
+'**********************************************************************
+Sub ShowInputDataForm()
+    Dim i As Integer   'counter
+    Dim j As Integer   'another counter
+
+    With InputData
+        'put header text in caption of form
+        .Caption = Title$
+        
+        'fill up all the text boxes with numbers
+        'use funny convention with two lines on one  separated by ":"
+        'use i = i + 1 on each line so lines are interchangeable.
+        i = -1
+        i = i + 1: .Text1(i) = RanSeed
+        i = i + 1: .Text1(i) = NRuns%
+        i = i + 1: .Text1(i) = NYears%
+        i = i + 1: .Text1(i) = MinAge%
+        i = i + 1: .Text1(i) = MaxAge%
+        i = i + 1: .Text1(i) = ConvergeCrit
+        i = i + 1: .Text1(i) = Debugg$
+        i = i + 1: .Text1(i) = SRType$
+        i = i + 1: .Text1(i) = SRa
+        i = i + 1: .Text1(i) = SRb
+        i = i + 1: .Text1(i) = SRc
+        i = i + 1: .Text1(i) = SRd
+        i = i + 1: .Text1(i) = GammaMarA
+        i = i + 1: .Text1(i) = GammaMarB
+        i = i + 1: .Text1(i) = TrndCycM$
+        i = i + 1: .Text1(i) = TCM1
+        i = i + 1: .Text1(i) = TCM2
+        i = i + 1: .Text1(i) = TCM3
+        i = i + 1: .Text1(i) = GammaFlowA
+        i = i + 1: .Text1(i) = GammaFlowB
+        i = i + 1: .Text1(i) = TrndCycF$
+        i = i + 1: .Text1(i) = TCF1
+        i = i + 1: .Text1(i) = TCF2
+        i = i + 1: .Text1(i) = TCF3
+        i = i + 1: .Text1(i) = depen$
+        i = i + 1: .Text1(i) = DL1
+        i = i + 1: .Text1(i) = DL2
+        i = i + 1: .Text1(i) = DR
+        i = i + 1: .Text1(i) = EscChoice$
+        i = i + 1: .Text1(i) = SurvScale$
+        i = i + 1: .Text1(i) = SRErrorA
+        i = i + 1: .Text1(i) = SRErrorB
+        i = i + 1: .Text1(i) = ResCorParameter
+        i = i + 1: .Text1(i) = MarSurv$
+        i = i + 1: .Text1(i) = NumBreakPoints%
+        i = i + 1: .Text1(i) = BaseRegime%
+        i = i + 1: .Text1(i) = TargetU(1)
+        i = i + 1: .Text1(i) = MgmtError$
+        i = i + 1: .Text1(i) = GammaMgmtA
+        i = i + 1: .Text1(i) = GammaMgmtB
+        i = i + 1: .Text1(i) = ECrit
+        i = i + 1: .Text1(i) = ERecovery
+        i = i + 1: .Text1(i) = EndAv%
+        i = i + 1: .Text1(i) = StepFunc$
+        i = i + 1: .Text1(i) = BufferStep
+        i = i + 1: .Text1(i) = BufferStart
+        i = i + 1: .Text1(i) = BufferEnd
+        i = i + 1: .Text1(i) = CohortStart(1)
+        i = i + 1: .Text1(i) = CohortStart(2)
+        i = i + 1: .Text1(i) = CohortStart(3)
+        i = i + 1: .Text1(i) = CohortStart(4)
+        i = i + 1: .Text1(i) = CohortStart(5)
+        i = i + 1: .Text1(i) = NatMort(1)
+        i = i + 1: .Text1(i) = NatMort(2)
+        i = i + 1: .Text1(i) = NatMort(3)
+        i = i + 1: .Text1(i) = NatMort(4)
+        i = i + 1: .Text1(i) = NatMort(5)
+        i = i + 1: .Text1(i) = MatRate(2)
+        i = i + 1: .Text1(i) = MatRate(3)
+        i = i + 1: .Text1(i) = MatRate(4)
+        i = i + 1: .Text1(i) = MatRate(5)
+        i = i + 1: .Text1(i) = PTU(2)
+        i = i + 1: .Text1(i) = MatU(2)
+        i = i + 1: .Text1(i) = PTU(3)
+        i = i + 1: .Text1(i) = MatU(3)
+        i = i + 1: .Text1(i) = PTU(4)
+        i = i + 1: .Text1(i) = MatU(4)
+        i = i + 1: .Text1(i) = PTU(5)
+        i = i + 1: .Text1(i) = MatU(5)
+        
+        'set tooltips to be the name of the variable.
+        'the funny rule of using i = i+1 is so that lines can be interchanged
+        'without renumbering the array of text boxes
+        i = -1
+        i = i + 1: .Text1(i).ToolTipText = "RanSeed"
+        i = i + 1: .Text1(i).ToolTipText = "NRuns%"
+        i = i + 1: .Text1(i).ToolTipText = "NYears%"
+        i = i + 1: .Text1(i).ToolTipText = "MinAge%"
+        i = i + 1: .Text1(i).ToolTipText = "MaxAge%"
+        i = i + 1: .Text1(i).ToolTipText = "ConvergeCrit"
+        i = i + 1: .Text1(i).ToolTipText = "Debugg$"
+        i = i + 1: .Text1(i).ToolTipText = "SRType$"
+        i = i + 1: .Text1(i).ToolTipText = "SRa"
+        i = i + 1: .Text1(i).ToolTipText = "SRb"
+        i = i + 1: .Text1(i).ToolTipText = "SRc"
+        i = i + 1: .Text1(i).ToolTipText = "SRd"
+        i = i + 1: .Text1(i).ToolTipText = "GammaMarA"
+        i = i + 1: .Text1(i).ToolTipText = "GammaMarB"
+        i = i + 1: .Text1(i).ToolTipText = "TrndCycM$"
+        i = i + 1: .Text1(i).ToolTipText = "TCM1"
+        i = i + 1: .Text1(i).ToolTipText = "TCM2"
+        i = i + 1: .Text1(i).ToolTipText = "TCM3"
+        i = i + 1: .Text1(i).ToolTipText = "GammaFlowA"
+        i = i + 1: .Text1(i).ToolTipText = "GammaFlowB"
+        i = i + 1: .Text1(i).ToolTipText = "TrndCycF$"
+        i = i + 1: .Text1(i).ToolTipText = "TCF1"
+        i = i + 1: .Text1(i).ToolTipText = "TCF2"
+        i = i + 1: .Text1(i).ToolTipText = "TCF3"
+        i = i + 1: .Text1(i).ToolTipText = "depen$"
+        i = i + 1: .Text1(i).ToolTipText = "DL1"
+        i = i + 1: .Text1(i).ToolTipText = "DL2"
+        i = i + 1: .Text1(i).ToolTipText = "DR"
+        i = i + 1: .Text1(i).ToolTipText = "EscChoice$"
+        i = i + 1: .Text1(i).ToolTipText = "SurvScale$"
+        i = i + 1: .Text1(i).ToolTipText = "SRErrorA"
+        i = i + 1: .Text1(i).ToolTipText = "SRErrorB"
+        i = i + 1: .Text1(i).ToolTipText = "ResCorParameter"
+        i = i + 1: .Text1(i).ToolTipText = "MarSurv$"
+        i = i + 1: .Text1(i).ToolTipText = "NumBreakPoints%"
+        i = i + 1: .Text1(i).ToolTipText = "BaseRegime%"
+        i = i + 1: .Text1(i).ToolTipText = "TargetU(1)"
+        i = i + 1: .Text1(i).ToolTipText = "MgmtError$"
+        i = i + 1: .Text1(i).ToolTipText = "GammaMgmtA"
+        i = i + 1: .Text1(i).ToolTipText = "GammaMgmtB"
+        i = i + 1: .Text1(i).ToolTipText = "ECrit"
+        i = i + 1: .Text1(i).ToolTipText = "ERecovery"
+        i = i + 1: .Text1(i).ToolTipText = "EndAv%"
+        i = i + 1: .Text1(i).ToolTipText = "StepFunc$"
+        i = i + 1: .Text1(i).ToolTipText = "BufferStep"
+        i = i + 1: .Text1(i).ToolTipText = "BufferStart"
+        i = i + 1: .Text1(i).ToolTipText = "BufferEnd"
+        i = i + 1: .Text1(i).ToolTipText = "CohortStart(1)"
+        i = i + 1: .Text1(i).ToolTipText = "CohortStart(2)"
+        i = i + 1: .Text1(i).ToolTipText = "CohortStart(3)"
+        i = i + 1: .Text1(i).ToolTipText = "CohortStart(4)"
+        i = i + 1: .Text1(i).ToolTipText = "CohortStart(5)"
+        i = i + 1: .Text1(i).ToolTipText = "NatMort(1)"
+        i = i + 1: .Text1(i).ToolTipText = "NatMort(2)"
+        i = i + 1: .Text1(i).ToolTipText = "NatMort(3)"
+        i = i + 1: .Text1(i).ToolTipText = "NatMort(4)"
+        i = i + 1: .Text1(i).ToolTipText = "NatMort(5)"
+        i = i + 1: .Text1(i).ToolTipText = "MatRate(2)"
+        i = i + 1: .Text1(i).ToolTipText = "MatRate(3)"
+        i = i + 1: .Text1(i).ToolTipText = "MatRate(4)"
+        i = i + 1: .Text1(i).ToolTipText = "MatRate(5)"
+        i = i + 1: .Text1(i).ToolTipText = "PTU(2)"
+        i = i + 1: .Text1(i).ToolTipText = "MatU(2)"
+        i = i + 1: .Text1(i).ToolTipText = "PTU(3)"
+        i = i + 1: .Text1(i).ToolTipText = "MatU(3)"
+        i = i + 1: .Text1(i).ToolTipText = "PTU(4)"
+        i = i + 1: .Text1(i).ToolTipText = "MatU(4)"
+        i = i + 1: .Text1(i).ToolTipText = "PTU(5)"
+        i = i + 1: .Text1(i).ToolTipText = "MatU(5)"
+
+        'Instead of the tooltip text use this to put
+        'the name of the variable in the label
+        i = -1
+        i = i + 1: .Label1(i) = "RanSeed"
+        i = i + 1: .Label1(i) = "NRuns%"
+        i = i + 1: .Label1(i) = "NYears%"
+        i = i + 1: .Label1(i) = "MinAge%"
+        i = i + 1: .Label1(i) = "MaxAge%"
+        i = i + 1: .Label1(i) = "ConvergeCrit"
+        i = i + 1: .Label1(i) = "Debugg$"
+        i = i + 1: .Label1(i) = "SRType$"
+        i = i + 1: .Label1(i) = "SRa"
+        i = i + 1: .Label1(i) = "SRb"
+        i = i + 1: .Label1(i) = "SRc"
+        i = i + 1: .Label1(i) = "SRd"
+        i = i + 1: .Label1(i) = "GammaMarA"
+        i = i + 1: .Label1(i) = "GammaMarB"
+        i = i + 1: .Label1(i) = "TrndCycM$"
+        i = i + 1: .Label1(i) = "TCM1"
+        i = i + 1: .Label1(i) = "TCM2"
+        i = i + 1: .Label1(i) = "TCM3"
+        i = i + 1: .Label1(i) = "GammaFlowA"
+        i = i + 1: .Label1(i) = "GammaFlowB"
+        i = i + 1: .Label1(i) = "TrndCycF$"
+        i = i + 1: .Label1(i) = "TCF1"
+        i = i + 1: .Label1(i) = "TCF2"
+        i = i + 1: .Label1(i) = "TCF3"
+        i = i + 1: .Label1(i) = "depen$"
+        i = i + 1: .Label1(i) = "DL1"
+        i = i + 1: .Label1(i) = "DL2"
+        i = i + 1: .Label1(i) = "DR"
+        i = i + 1: .Label1(i) = "EscChoice$"
+        i = i + 1: .Label1(i) = "SurvScale$"
+        i = i + 1: .Label1(i) = "SRErrorA"
+        i = i + 1: .Label1(i) = "SRErrorB"
+        i = i + 1: .Label1(i) = "ResCorParameter"
+        i = i + 1: .Label1(i) = "MarSurv$"
+        i = i + 1: .Label1(i) = "NumBreakPoints%"
+        i = i + 1: .Label1(i) = "BaseRegime%"
+        i = i + 1: .Label1(i) = "TargetU(1)"
+        i = i + 1: .Label1(i) = "MgmtError$"
+        i = i + 1: .Label1(i) = "GammaMgmtA"
+        i = i + 1: .Label1(i) = "GammaMgmtB"
+        i = i + 1: .Label1(i) = "ECrit"
+        i = i + 1: .Label1(i) = "ERecovery"
+        i = i + 1: .Label1(i) = "EndAv%"
+        i = i + 1: .Label1(i) = "StepFunc$"
+        i = i + 1: .Label1(i) = "BufferStep"
+        i = i + 1: .Label1(i) = "BufferStart"
+        i = i + 1: .Label1(i) = "BufferEnd"
+        i = i + 1: .Label1(i) = "CohortStart(1)"
+        i = i + 1: .Label1(i) = "CohortStart(2)"
+        i = i + 1: .Label1(i) = "CohortStart(3)"
+        i = i + 1: .Label1(i) = "CohortStart(4)"
+        i = i + 1: .Label1(i) = "CohortStart(5)"
+        i = i + 1: .Label1(i) = "NatMort(1)"
+        i = i + 1: .Label1(i) = "NatMort(2)"
+        i = i + 1: .Label1(i) = "NatMort(3)"
+        i = i + 1: .Label1(i) = "NatMort(4)"
+        i = i + 1: .Label1(i) = "NatMort(5)"
+        i = i + 1: .Label1(i) = "MatRate(2)"
+        i = i + 1: .Label1(i) = "MatRate(3)"
+        i = i + 1: .Label1(i) = "MatRate(4)"
+        i = i + 1: .Label1(i) = "MatRate(5)"
+        i = i + 1: .Label1(i) = "PTU(2)"
+        i = i + 1: .Label1(i) = "MatU(2)"
+        i = i + 1: .Label1(i) = "PTU(3)"
+        i = i + 1: .Label1(i) = "MatU(3)"
+        i = i + 1: .Label1(i) = "PTU(4)"
+        i = i + 1: .Label1(i) = "MatU(4)"
+        i = i + 1: .Label1(i) = "PTU(5)"
+        i = i + 1: .Label1(i) = "MatU(5)"
+
+        
+        For j = 0 To i
+            .Text1(j).Enabled = True
+        Next j
+        
+        .Show vbModal     'vbmodal -> will not continue until form closed by user
+    End With
+    
+End Sub
+
+'*****  UpdateProgress ******
+'TAB: updates the progress bar. Returns False if
+'the user has pressed Cancel, true otherwise.
+'************************************************************************
+Function UpdateProgress(objProgress As clsProgress, _
+            NRuns%, BufNum%, Rep%, ScaleProgress As Double) As Boolean
+    Dim DoUpdate As Boolean   'check for an update or not
+    
+    DoUpdate = False
+    UpdateProgress = True     'by default return True if cancel not pressed
+    
+    'If lots of runs, only update every 20 runs.
+    If NRuns% > 20 Then
+        If Rep% Mod 20 = 0 Then
+            DoUpdate = True
+        End If
+    Else
+        DoUpdate = True
+    End If
+    
+    If DoUpdate = True Then
+        objProgress.Value = (CLng(NRuns%) * (BufNum% - 1) + Rep%) / ScaleProgress
+        If objProgress.CancelPressed = True Then
+            Call CurrentStatus("Program halted by user, simulations not completed.")
+            UpdateProgress = False   'return false so calling sub knows that cancel has been pressed
+            Exit Function 'exit without finishing
+        End If
+    End If
+End Function
+
+'***** ViewDespiteChange ********
+'TAB: 20 Sept 2001. Checks the date of the input file and compares it
+'to the date of another file. If the input file is more recent
+'then pops up a messagebox to the user notifying them
+'that the output file is older than the input file.
+'Returns True if user answers OK, or input file older,
+'and false if input file newer and user does not want to
+'view file.
+'***************************************************************************
+Function ViewDespiteChange(InFile As String, _
+                    OutFile As String) As Boolean
+    Dim DateIn As Date
+    Dim DateOut As Date   'dates of input and output files
+    Dim Answer   'user answer to query
+    
+    'cool function returns date and time file was last changed
+    DateIn = FileDateTime(InFile)
+    DateOut = FileDateTime(OutFile)
+    
+    If DateIn > DateOut Then   'input file more recent that output file
+        Answer = MsgBox("Input file has been edited since last model run." & vbCr & _
+                "Do you still want to view this output file?", vbExclamation + vbYesNoCancel + vbDefaultButton1, _
+                "Input file has changed")
+        If Answer = vbYes Then
+            ViewDespiteChange = True
+        Else
+            ViewDespiteChange = False
+        End If
+    Else
+        ViewDespiteChange = True
+    End If
+End Function
+
+
+'*******************Form_activate************
+'TAB: This event is called after form_load.
+'This loads the form with the most recently used
+'filenames, and allows the user to choose one, then exits.
+Private Sub Form_Activate()
+    Dim WantsExit As Boolean
+    Dim WantsRun As Boolean
+    Static CallOnce As Boolean  'static keeps value whenever called
+    
+    If CallOnce = False Then
+        CallOnce = True    'must be here and not at end of sub for some arb VB reason
+        If GetCommandLine(InFile$, OutFileSum$, WantsExit, WantsRun) = True Then
+            If WantsRun = True Then
+                Call Main
+                Call MenuOptionsAllowed(InFileSelected, SimulationsCompleted)
+            End If
+            If WantsExit = True Then
+                Unload Me
+            End If
+        Else
+            Call GetRecentFiles
+        End If
+    End If
+End Sub
+
+'******************Form_load**************
+'TAB: This automatically called at the start of the program,
+'useful for setting things up at the start, like flags.
+Private Sub Form_Load()
+        
+    InFileSelected = False  'input file name not yet chosen
+    SimulationsCompleted = False 'have not run simulations
+    ChV.HaveChanged = False   'user not overwritten input file yet
+    Call MenuOptionsAllowed(InFileSelected, SimulationsCompleted)
+    
+End Sub
+
+'**************************Form_QueryUnload**************************
+'TAB: If the user pressed the close button on the form, then
+'ensure that the most recent file name is saved, just as
+'if File->Exit had been pressed.
+'********************************************************************
+Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
+    If UnloadMode = vbFormControlMenu Then
+        'do whatever stuff you want to happen when exit is pressed.
+    End If
+End Sub
+
+'********************Form_Resize*******************
+'TAB: this event called when form is first loaded
+'and also whenever it is resized. Can be used to ensure that
+'things inside the form (text boxes, status bars) are
+'appropriately resized so that the form still looks OK.
+'I just resize the main text box in this instance.
+'**************************************************
+Private Sub Form_Resize()
+    If ScaleHeight > 250 Then
+        Text1.Move 0, 0, ScaleWidth, ScaleHeight - 250
+    End If
+End Sub
+
+'**************  mnuDataCheckInputValues_Click
+'TAB 1 Sept 2001. Menu option, this reads in all the data and then spits
+'out a form with all the variables that have been read in.
+'NB: this only does a very specific subset of the variables
+'in one standard input file. It is not intended to be general,
+'it is just a sub that was used for error-checking for one
+'input data file. For example, sometimes, more values
+'must be entered in the input sheet if the max age is greater
+'This sub does not take that into account at all, and must
+'be modified together with the form itself.
+'A more general sub would just call the form with
+'n text boxes without labels attached, and send it all the values
+'that were read in in the GetInput sub, plus their variable
+'names and the explanations in the input file. That would
+'require rewriting the form code in the form InputData
+'considerably, and adding options which would increase the number
+'of text boxes if for example maxage was increased.
+'*****************************************************
+Private Sub mnuDataCheckInputValues_Click()
+    
+    'Read input data and show the values of the variables.
+    'Note that the input file name must have been chosen
+    'in order for this option to be available: see menuoptionsallowed sub
+    Call GetInput
+    Call ShowInputDataForm
+
+End Sub
+
+Private Sub mnuDataEditInputFile_Click()
+    Call Shell("Notepad.exe " & InFile$, vbMaximizedFocus)
+End Sub
+
+'*********************************************
+'TAB: allows user to overwrite the parameters in the input
+'file for additional simulation runs.
+'if chv.havechanged = true, will overwrite input file
+'Search through text to see that .havechanged is set to
+'false wherever the input file is changed.
+'*********************************************
+Private Sub mnuDataNewParameters_Click()
+    With frmSimParameters
+        If ChV.HaveChanged = False Then
+            Call GetInput
+            'If the parameters have been entered then populate the form with them
+            .txtNumRuns = NRuns%
+            .txtNumYears = NYears%
+            .txtBufferStep = BufferStep
+            .txtBufferStart = BufferStart
+            .txtBufferEnd = BufferEnd
+        Else
+            .txtNumRuns = ChV.NumRuns
+            .txtNumYears = ChV.NumYears
+            .txtBufferStep = ChV.BufferStep
+            .txtBufferStart = ChV.BufferStart
+            .txtBufferEnd = ChV.BufferEnd
+        End If
+        
+        .Show vbModal         'Show the form, user must input values
+
+        If .mblnOK = True Then   'If OK pressed then update values
+            ChV.NumRuns = CInt(.txtNumRuns)   'convert to integer
+            ChV.NumYears = CInt(.txtNumYears)
+            ChV.BufferStep = CDbl(.txtBufferStep)
+            ChV.BufferStart = CDbl(.txtBufferStart)
+            ChV.BufferEnd = CDbl(.txtBufferEnd)
+            ChV.HaveChanged = True
+        End If
+        Unload frmSimParameters   'Unload form
+    End With
+End Sub
+
+'***********  mnuFileExit_Click*******
+'TAB: specifies what to do when the user selects
+'exit. Could put message showing output files
+'or query whether user wants to make changes to input
+'file or query whether user really wants to quit.
+'*************************************
+Private Sub mnuFileExit_Click()
+    Unload Me  'unloads form to exit program
+End Sub
+
+'*******************mnuFileOpenInputFile_Click()********
+'TAB: Use menus to get input file names (also sets output
+'files to be in the same directory with just a different
+'extension).
+'*******************************************************
+Private Sub mnuFileOpenInputFile_Click()
+    InFileSelected = GetInFile(InFile$, InFileSelected)
+    Call MenuOptionsAllowed(InFileSelected, SimulationsCompleted)
+End Sub
+
+Private Sub mnuFileRecentFiles_Click()
+    Call GetRecentFiles
+End Sub
+
+Private Sub mnuHelpAbout_Click()
+    frmAbout.Show vbModal
+End Sub
+
+Private Sub mnuResultsByYear_Click()
+    If ViewDespiteChange(InFile, OutFileByr$) = True Then
+        Call Shell("Notepad.exe " & OutFileByr$, vbMaximizedFocus)
+    End If
+End Sub
+
+Private Sub mnuResultsDebugging_Click()
+    If ViewDespiteChange(InFile, OutFileDbg$) = True Then
+        Call Shell("Notepad.exe " & OutFileDbg$, vbMaximizedFocus)
+    End If
+End Sub
+
+Private Sub mnuResultsEscapement_Click()
+    If ViewDespiteChange(InFile, OutFileEsc$) = True Then
+        Call Shell("Notepad.exe " & OutFileEsc$, vbMaximizedFocus)
+    End If
+End Sub
+
+Private Sub mnuResultsSummary_Click()
+    If ViewDespiteChange(InFile, OutFileSum$) = True Then
+        Call Shell("Notepad.exe " & OutFileSum$, vbMaximizedFocus)
+    End If
+End Sub
+
+'******************mnuRunRun_Click()*********
+'TAB: Run this when the Run->Run menu option is chosen (TAB)
+Private Sub mnuRunRun_Click()
+    
+    'get the output file names, if returns false, there
+    'was a problem, e.g. user pressed Cancel, so exit
+    'asks user to input files, also queries if files will
+    'be overwritten, unlike command line version
+    If GetOutFiles(InFile$, OutFileSum$, OutFileEsc$, _
+            OutFileByr$, OutFileDbg$, OutFilePrn$, _
+            OutFileTmp$, InFileCopy$) = False Then
+        Call CurrentStatus("Simulation runs abandoned.")
+        Exit Sub
+    End If
+    
+    Call Main
+
+    Call MenuOptionsAllowed(InFileSelected, SimulationsCompleted)
+End Sub
+
+

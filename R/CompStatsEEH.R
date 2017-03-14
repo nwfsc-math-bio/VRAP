@@ -16,7 +16,7 @@ CompStatsEEH = function(BufNum, inputs, BufSRb, YearStats, SummaryStats){ #BufNu
   SurvScale = inputs$SurvScale
   
   #In VB code Escapmnt (over ages) is redefined to be TotEscpmnt (sum over ages)
-  #kept terminology closer to what is being donw
+  #kept terminology closer to what is being done
   TotEscpmnt = YearStats$TotEscpmnt #a matrix of Escpmnt for each year
   
   #'COMPUTE STATISTICS
@@ -25,6 +25,7 @@ CompStatsEEH = function(BufNum, inputs, BufSRb, YearStats, SummaryStats){ #BufNu
   #divide by NRuns because we want the average over all runs
   #Note in VB code, AEQMort is initially by age and then in SaveYearData, it is reassigned to be TotAEQMort.
   #Here I keep AEQMort and TotAEQMort separate
+  #Thus the VB code refers to YearStats.AEQMort while I use YearStats$TotAEQMort
   SummaryStats$AvgAEQMort[BufNum] = SummaryStats$AvgAEQMort[BufNum]+mean(YearStats$TotAEQMort)/inputs$NRuns
   
   #'COMPUTE AVERAGE CALENDAR YEAR HARVEST RATE
@@ -100,8 +101,8 @@ CompStatsEEH = function(BufNum, inputs, BufSRb, YearStats, SummaryStats){ #BufNu
   SummaryStats$BufAvgBYrHR[BufNum] = SummaryStats$BufAvgBYrHR[BufNum] + mean(TempBYrHR)/inputs$NRuns
   SummaryStats$AvgBYrHR[BufNum, ] = SummaryStats$AvgBYrHR[BufNum, ] + TempBYrHR/inputs$NRuns
   #don't divide these by NRuns because Max/Min
+  SummaryStats$MinBYrHR[BufNum, ] = pmin(SummaryStats$MinBYrHR[BufNum, ], TempBYrHR, na.rm=TRUE)
   SummaryStats$MaxBYrHR[BufNum, ] = pmax(SummaryStats$MaxBYrHR[BufNum, ], TempBYrHR, na.rm=TRUE)
-  SummaryStats$MinBYrHR[BufNum, ] = pmax(SummaryStats$MinBYrHR[BufNum, ], TempBYrHR, na.rm=TRUE)
   
   SummaryStats$AveRanMarine[BufNum] = SummaryStats$AveRanMarine[BufNum] + mean(YearStats$RanMarine)/inputs$NRuns
   SummaryStats$AveRanFlow[BufNum] = SummaryStats$AveRanFlow[BufNum] + mean(YearStats$RanFlow)/inputs$NRuns

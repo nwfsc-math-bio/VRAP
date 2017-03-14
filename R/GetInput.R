@@ -23,9 +23,9 @@ GetInput = function(InFile){
   inputs$MinAge = readit(4,1) #line 4, NYears
   inputs$MaxAge = readit(4,2) #line 4, NYears
   inputs$ConvergeCrit = readit(5,1) #line 5, ConvergeCrit
-  inputs$Debugg = readit(6,1) #line 6, Debugg
-  inputs$Debugg = toupper(inputs$Debugg)
-  if(!(inputs$Debugg %in% c("YES", "NO"))) stop("Unknown debug selection (yes/no only)")  
+  inputs$CenterCov = readit(6,1) #line 6, was debug Debugg
+  inputs$CenterCov = toupper(inputs$CenterCov)
+  if(!(inputs$CenterCov %in% c("YES", "NO"))) stop("Unknown covariate centering selection (yes/no only)")  
   
   #'----- END OF RUN PARAMETERS SECTION ------------------------
   

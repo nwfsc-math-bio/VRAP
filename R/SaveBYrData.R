@@ -26,8 +26,8 @@ for(Byr in  -1:(inputs$NYears - inputs$MaxAge)){
   output=c(output, format(round(SummaryStats$MinBYrHR[BufNum, Byr+2],digits=3), nsmall=3,width=8));
   output=c(output, format(round(SummaryStats$AvgBYrHR[BufNum, Byr+2],digits=3), nsmall=3,width=8));
   output=c(output, format(round(SummaryStats$MaxBYrHR[BufNum, Byr+2],digits=3), nsmall=3,width=8));
-  output=c(output, "\r\n"); 
+  output=c(output, "\n"); 
     } #for loop for Byr
 } #for loop for Buffer
-cat(file=file, output)
+cat(file=file, output,sep="")
 }

@@ -26,8 +26,8 @@ for(Year in 1:inputs$NYears){
   output=c(output, format(round(SummaryStats$MinEscpmnt[BufNum, Year],digits=0), nsmall=0,width=8));
   output=c(output, format(round(SummaryStats$AvgEscpmnt[BufNum, Year],digits=0), nsmall=0,width=8));
   output=c(output, format(round(SummaryStats$MaxEscpmnt[BufNum, Year],digits=0), nsmall=0,width=8));
-  output=c(output, "\r\n");  
+  output=c(output, "\n");  
 } #for loop for year
 } #for loop for buffer
-cat(file=file, output)
+cat(file=file, output, sep="")
 }

@@ -33,12 +33,16 @@ CompEscpmnt = function(Regime, Year, inputs, BufTargetU, Cohort, AEQ, YearStats)
    n = 0
    while(Converge == "No"){
      n = n + 1
-        
+     # The pre-terminal and mature harvest will be scaled up or down until
+     # the actual exploitation rate ActualU = TotAEQMort / (TotAEQMort + TotEscpmnt)
+     # reaches the target for the simulation BufTargetUError.
+     
     #'COMPUTE PRETERMINAL MORTALITY AND UPDATE COHORT
     tmp=FishScale * inputs$PTU
     tmp[tmp>1] = 1 #can't take more fish than are there
     PTMort = tmp * Cohort
-    TempCohort = Cohort - PTMort      
+    TempCohort = Cohort - PTMort
+# This VB code not needed since R can work on a vector
 #     for(Age in inputs$MinAge:inputs$MaxAge){
 #       if(FishScale * inputs$PTU[Age] < 1){ #FishScale is 1 or 0
 #         PTMort[Age] = FishScale * Cohort[Age] * inputs$PTU[Age] #take a fraction of fish
@@ -51,6 +55,7 @@ CompEscpmnt = function(Regime, Year, inputs, BufTargetU, Cohort, AEQ, YearStats)
     #'COMPUTE MATURE RUN AND UPDATE COHORT
     MatRun = TempCohort * inputs$MatRate
     TempCohort = TempCohort - MatRun
+# This VB code not needed since R can work on a vector
 #     for(Age in inputs$MinAge:inputs$MaxAge){
 #       MatRun[Age] = TempCohort[Age] * inputs$MatRate[Age]
 #       TempCohort[Age] = TempCohort[Age] - MatRun[Age]
@@ -87,6 +92,7 @@ CompEscpmnt = function(Regime, Year, inputs, BufTargetU, Cohort, AEQ, YearStats)
     
     #'COMPARE ACTUAL AND TARGET; SCALE EXPLOITATION RATES IF NECESSARY
     #'if any of these met, exit
+    #'Criteria 1: unclear why needed.  Criteria 2: target ER < 0. Criteria 3: extinct
     if(n > 100 | BufTargetU[Regime] <= 0 | (TotAEQMort + TotEscpmnt) < 1){ 
        Converge = "Yes"
     }else{ #none are met, so determine if converged

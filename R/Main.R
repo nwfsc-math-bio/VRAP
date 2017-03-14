@@ -2,8 +2,8 @@ Main = function(InFile=NULL, OutFileBase=NULL,
                 NRuns=-1, NYears=-1, Title=-1,
                 TargetStart=-1, TargetEnd=-1, TargetStep=-1,
                 ERecovery=-1, QET=-1, ECrit=-1, NewRavFileName="tmprav.rav",
-                silent=FALSE, lcores=1){
-  
+                forceNewRav=NULL, silent=FALSE, lcores=1){
+
   c1 = makeCluster(lcores)
   registerDoParallel(c1)
   
@@ -42,6 +42,11 @@ Main = function(InFile=NULL, OutFileBase=NULL,
   if(QET>0){ inputs$DL2=QET; newrav=TRUE }
   if(ERecovery>0){ inputs$ERecovery=ERecovery; newrav=TRUE }
   if(ECrit>0){ inputs$ECrit=ECrit; newrav=TRUE }
+
+  ## override newrav if desired
+  newrav <- if(!is.null(forceNewRav) && !is.na(forceNewRav) &&
+                 is.logical(forceNewRav)) {forceNewRav} else {newrav}
+  
   #This was computed in GetInput(); need to recompute
   inputs$BufMax = round((inputs$BufferEnd - inputs$BufferStart) / inputs$BufferStep + 1)
   #Howard: I doubt this is ok for unix; needed a dir to save the new rav file
@@ -70,7 +75,7 @@ Main = function(InFile=NULL, OutFileBase=NULL,
   
   outtm <- proc.time() - outtm
   
-  if(.Platform$OS.type=="windows") stopCluster(c1)
+  stopCluster(c1)
   
   return(c(out,output.time=outtm[3]))
 }

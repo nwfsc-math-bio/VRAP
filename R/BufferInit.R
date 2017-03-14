@@ -1,5 +1,7 @@
 # '*****  BufferInit  *****
 # 'ADJUST TARGET RATE FOR BUFFER EXPLOITATION
+# If the StepFunc is ER, then the simulation steps through different exploitation rates.
+# It does this by using the Target ER (in inputs$TargetU and multiplying that by a 'buffer' or scaling factor)
 
 BufferInit = function(Buffer, inputs){
   #These are the internal function variables
@@ -13,22 +15,29 @@ BufferInit = function(Buffer, inputs){
   }
   if(inputs$StepFunc=="ER"){ 
     PBff = 1      #population capacity buffer; SRb x this
-    EBff = Buffer #exploitation buffer; er x this
+    EBff = Buffer #exploitation buffer; ER used in sim is inputs$TargetU x this
   }
-    
-  BufSRb = PBff * inputs$BSRb  #adjust capacity upward
+  
+  # In VB code, SR parameters are input at BSRa and BSRb 
+  # and immediately renamed to SRa and SRb
+  # in BufferInit, SRb is redefined again as PBff * BSRb if StepFunc = "Pop"
+  # So SRb keeps updating to new regime while BSRb stays at the original value
+  # In my code, I create BufSRb which is what changes
   
   if(inputs$SRType %in% c("HOC2", "HOC3", "HOC4")){
+    BufSRb = PBff * inputs$BSRb  #adjust capacity upward
     MxR = BufSRb * inputs$AveEnv #never used except printed out; Max Recruits adj by average environment
     QetR = inputs$BSRa * inputs$AveEnv * inputs$DL2
   }
   
   if(inputs$SRType %in% c("BEV2", "BEV3", "BEV4")){
+    BufSRb = PBff * inputs$BSRb  
     MxR = BufSRb * inputs$AveEnv #never used except printed out;
     QetR = inputs$AveEnv / ((1 / BufSRb) + (1 / inputs$BSRa) * (1 / inputs$DL2))
   }
   
   if(inputs$SRType %in% c("RIC2", "RIC3", "RIC4")){
+    BufSRb = PBff * inputs$BSRb  
     MxR = inputs$BSRa * inputs$AveEnv * BufSRb / 2.71828 #never used except printed out;
     QetR = inputs$AveEnv * inputs$BSRa * inputs$DL2 * exp(-inputs$DL2 / BufSRb)
   }
@@ -45,6 +54,8 @@ BufferInit = function(Buffer, inputs){
   
   #NumBreakPoints is an original input
   #This is just the ER to use for a particular sim (Buffer); only changed if StepFunc="ER"
+  #NumBreaks parts relates to a simulation where there the harvest rate is different if the escapement drops
+  #  below certain thresholds.
   rtn.list$BufTargetU = c()
   for(Break in 1:(inputs$NumBreakPoints + 1)){
     if(inputs$NumBreakPoints > 1){ #we have 3 or more Buffer targets      

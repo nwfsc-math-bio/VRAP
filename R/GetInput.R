@@ -24,9 +24,10 @@ GetInput = function(InFile){
   inputs$MaxAge = readit(4,2) #line 4, NYears
   inputs$ConvergeCrit = readit(5,1) #line 5, ConvergeCrit
   inputs$CenterCov = readit(6,1) #line 6, was debug Debugg
-  inputs$CenterCov = toupper(inputs$CenterCov)
-  if(!(inputs$CenterCov %in% c("YES", "NO"))) stop("Unknown covariate centering selection (yes/no only)")  
-  
+  inputs$CenterCov = toupper(inputs$CenterMS)
+  if(!(inputs$CenterCov %in% c("YES", "NO"))) stop("Unknown covariate centering selection (yes/no only)")
+  if(inputs$CenterCov=="YES") inputs$logMSAve = readit(6,2) #line 6, need mean of log MS cov
+
   #'----- END OF RUN PARAMETERS SECTION ------------------------
   
   # '----- STOCK-RECRUIT SECTION -------------------------------

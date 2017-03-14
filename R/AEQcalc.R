@@ -1,21 +1,21 @@
-# '*****  SUB AEQcalc  *****
-# 'Compute the AEQs for each age group
-# 'TAB: what are AEQs? Adult Equivalents!
-# Sub AEQcalc()
-# Dim TmpA As Double  'TAB: added line
-# Dim TmpS As Double  'TAB: added line
-# Dim Age As Integer   'TAB: added line
+#' @title SUB AEQcalc
+#' @description Compute the AEQs for each age group.  Original VB code:
+#' TAB: what are AEQs? Adult Equivalents!
+#' Sub AEQcalc()
+#' Dim TmpA As Double  'TAB: added line
+#' Dim TmpS As Double  'TAB: added line
+#' Dim Age As Integer   'TAB: added line
 # 
-# TmpA = 0
-# TmpS = 0
-# For Age = MaxAge% To MinAge% Step -1
-# AEQ(Age) = MatRate(Age) + TmpS * (1 - MatRate(Age)) * TmpA
-# TmpA = AEQ(Age)
-# TmpS = 1 - NatMort(Age)
-# Next Age
-# 
-# End Sub
-
+#' TmpA = 0
+#' TmpS = 0
+#' For Age = MaxAge% To MinAge% Step -1
+#' AEQ(Age) = MatRate(Age) + TmpS * (1 - MatRate(Age)) * TmpA
+#' TmpA = AEQ(Age)
+#' TmpS = 1 - NatMort(Age)
+#' Next Age
+#' 
+#' End Sub
+#' @return AEQ (scalar)
 AEQcalc = function(input){ 
   MinAge=input$MinAge
   MaxAge=input$MaxAge

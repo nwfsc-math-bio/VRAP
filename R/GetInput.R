@@ -170,7 +170,11 @@ GetInput = function(InFile){
   
   # '--------- FISHERY MANAGEMENT PARAMETERS ---------------------------
   # 'INPUT THE NUMBER OF BREAKPOINTS AND DIMENSION ARRAYS
+  # EEH: Per comments from Norma, I am not allowing more than 1 breakpoint
+  # EEH: Norma indicated that this code was untested and examination of BufferInit.R
+  # EEH: Makes me uncertain what is really does if there is more than one breakpoint.
   inputs$NumBreakPoints = readit(22,1)
+  if(!(inputs$NumBreakPoints %in% c(0,1))) stop("Line 23 in rav file: only 0 or 1 breakpoints allowed for specification of the harvest regime.")  
   
   #'IDENTIFY WHICH LEVEL IS THE BASE REGIME
   inputs$BaseRegime = readit(23,1)

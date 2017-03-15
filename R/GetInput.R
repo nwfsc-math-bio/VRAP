@@ -26,7 +26,11 @@ GetInput = function(InFile){
   inputs$CenterCov = readit(6,1) #line 6, was debug Debugg
   inputs$CenterCov = toupper(inputs$CenterMS)
   if(!(inputs$CenterCov %in% c("YES", "NO"))) stop("Unknown covariate centering selection (yes/no only)")
-  if(inputs$CenterCov=="YES") inputs$logMSAve = readit(6,2) #line 6, need mean of log MS cov
+  if(inputs$CenterCov=="YES"){
+    inputs$logMSAve = readit(6,2) #line 6, need mean of log MS cov
+    inputs$logFlowAve = readit(6,3) #line 6, need mean of log Flow; note, DM logs flow so logFlowAve is the same as FlowAve
+  }
+    
 
   #'----- END OF RUN PARAMETERS SECTION ------------------------
   

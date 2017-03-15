@@ -1,4 +1,11 @@
-# This function takes inputs list and creates a RAV file
+#' @title WriteRavFile
+#' @description This function takes inputs list and creates a RAV file
+#' @details This function is new to the R VRAP.  Needed to create record of the 
+#' .rav file used for the VRAP run in case the user changed .rav values in the
+#' shiny app.
+#' @param inputs Inputs from .rav file.
+#' @param filename Name of the .rav file to write.
+#' @return Nothing. .rav file is written.
 WriteRavFile = function( inputs, filename ) {
   includeMarineSurvival=includeFlow=FALSE
   if(inputs$SRType %in% c("BEV3","HOC3","RIC3")) includeFlow=TRUE

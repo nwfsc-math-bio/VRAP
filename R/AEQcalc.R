@@ -1,5 +1,6 @@
 #' @title SUB AEQcalc
 #' @description Compute the AEQs for each age group.  Original VB code:
+#' @details
 #' TAB: what are AEQs? Adult Equivalents!
 #' Sub AEQcalc()
 #' Dim TmpA As Double  'TAB: added line

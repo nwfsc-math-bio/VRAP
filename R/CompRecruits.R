@@ -1,4 +1,12 @@
-#'*************************  CompRecruits  *****
+#' @title CompRecruits
+#' @description Compute recruits
+#' @param YearStats list of computed variables for each year: AEQMort, Escpmnt[Year,] = Escpmnt, TotAdultEscpmnt, TotAEQMort, TotEscpmnt,TempCohort.
+#' @param Year Year to compute the escapement for.
+#' @param inputs Inputs from .rav file
+#' @param repvars repvars
+#' @param staticvars Static variables
+#' @param BufSRb Capacity.  Changes if StepFunc=Pop.  Otherwise stays the same.
+#' @return updated repvars list with: Cohort[1]=CohortAge1, LastRanFlow, LastRanError, LastRanMarine.
 CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
   
   #if StepFunc="Pop" then SRb (capacity) is being changed.

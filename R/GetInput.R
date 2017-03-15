@@ -1,7 +1,7 @@
-#'*****  GetInput   *****
-#'Read in a .rav file and assign all the variables
-#'Returns the list of all inputs
-#'
+#' @title GetInput
+#' @description Read in a .rav file and assign all the variables
+#' @param InFile the name of the .rav file
+#' @return Returns the list of all inputs
 GetInput = function(InFile){
   
   #The rav file has , as end of input/separator

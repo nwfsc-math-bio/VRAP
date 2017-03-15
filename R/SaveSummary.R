@@ -1,5 +1,9 @@
-# '*****  SaveSummary  ******
-# '********************************************************************
+#' @title SaveSummary
+#' @description Write the .esc output file
+#' @param inputs Inputs from .rav file
+#' @param SummaryStats list with the summary statistics to be updated
+#' @param staticvars Static variables
+#' @return Nothing.  Writes file.
 SaveSummary = function(inputs, SummaryStats, staticvars){
   
   file = inputs$OutFileSum;

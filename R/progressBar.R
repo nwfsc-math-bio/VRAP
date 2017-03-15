@@ -1,3 +1,5 @@
+#' @title progressBar
+#' @description if silent=FALSE, then a progress bar is shown
 progressBar = function(prop = 0, prev = 0){
     if (prev < 50) {
         if (prop > 1) {

@@ -1,7 +1,8 @@
 ## export functions
 export(
 Main,
-VRAP
+VRAP,
+ComputeRER
 )
 
 ## register S3 methods

@@ -1,15 +1,18 @@
-# '*****  CompAgeCohort  *****
-# Sub CompAgeCohort(TempCohort() As Double)
-#     Dim Age As Integer      'counter for ages
-# 
-# For Age = MaxAge% To MinAge% + 1 Step -1
-# Cohort(Age) = TempCohort(Age - 1)
-# Next Age
-# 
-# 'recruitment I think
-#     Cohort(MinAge%) = Cohort(MinAge% - 1)
-# 
-# End Sub
+#' @title CompAgeCohort
+#' @description Compute age cohort
+#' @details
+#' Original VB code:
+#' Sub CompAgeCohort(TempCohort() As Double)
+#'     Dim Age As Integer      'counter for ages
+#' 
+#' For Age = MaxAge% To MinAge% + 1 Step -1
+#' Cohort(Age) = TempCohort(Age - 1)
+#' Next Age
+#' 
+#' Cohort(MinAge%) = Cohort(MinAge% - 1)
+#' 
+#' End Sub
+#' @return Cohort (scalar)
 
 CompAgeCohort = function(TempCohort, Cohort, inputs){   
   #TempCohort is Cohort - mortality and fish that return to spawn

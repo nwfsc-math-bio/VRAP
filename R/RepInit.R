@@ -1,8 +1,9 @@
-# '*****  RepInit  *****
-# '******************************************************************
+#' @title RepInit
+#' @param inputs Inputs from .rav file
 RepInit = function(inputs){
   rtn.list=list()
-  #Set default values used when RanFlow and RanMarine are used (2 and 3 param SR models)
+  #Set default values used when RanFlow and RanMarine are used
+  #(2 and 3 param SR models)
   rtn.list$LastRanFlow = 0
   rtn.list$LastRanMarine = 0
 

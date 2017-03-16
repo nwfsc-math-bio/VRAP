@@ -1,3 +1,7 @@
+#' @title SetupSummaryStats
+#' @description Create an list set up for all the summary stats. Each list itme is length of BufMax and is all 0.
+#' @param inputs Inputs from .rav file
+#' @return SummaryStats list
 SetupSummaryStats = function(inputs){
   SummaryStats = list()
 

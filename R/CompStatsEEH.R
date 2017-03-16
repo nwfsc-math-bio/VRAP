@@ -1,4 +1,12 @@
-#'*****  CompStats  *****
+#' @title CompStats
+#' @description Returns the statistics (calculated values) needed to produce the summary output file
+#' @details This function similar but not identical to the original VB function
+#' @param BufNum Which simulation (TargetER or Pop) is this for.
+#' @param inputs Inputs from .rav file
+#' @param BufSRb Capacity.  Changes if StepFunc=Pop.  Otherwise stays the same.
+#' @param YearStats list of computed variables for each year: AEQMort, Escpmnt[Year,] = Escpmnt, TotAdultEscpmnt, TotAEQMort, TotEscpmnt,TempCohort.
+#' @param SummaryStats list with the summary statistics to be updated
+#' @return Updated SummaryStats list
 CompStatsEEH = function(BufNum, inputs, BufSRb, YearStats, SummaryStats){ #BufNum is BufMax, an integer
   
   NYears = inputs$NYears
@@ -34,12 +42,12 @@ CompStatsEEH = function(BufNum, inputs, BufSRb, YearStats, SummaryStats){ #BufNu
   SummaryStats$AvgCaHR[BufNum] = SummaryStats$AvgCaHR[BufNum] + mean(YearStats$CalendarHR)/inputs$NRuns
   
   #'COMPUTE PROPORTION OF TIMES ESCAPEMENT WAS LESS THAN LOWER LEVEL
-    #'add 1/NRuns because we want the fraction out of all runs
-    SummaryStats$AvgECrit[BufNum] = SummaryStats$AvgECrit[BufNum] + sum(TotEscpmnt < inputs$ECrit)/(inputs$NYears*inputs$NRuns)
-
+  #'add 1/NRuns because we want the fraction out of all runs
+  SummaryStats$AvgECrit[BufNum] = SummaryStats$AvgECrit[BufNum] + sum(TotEscpmnt < inputs$ECrit)/(inputs$NYears*inputs$NRuns)
+  
   #'FIND MINIMUM, MAXIMUM, AND AVERAGE ESCAPEMENT        
-    SummaryStats$MinEscpmnt[BufNum,] = pmin(SummaryStats$MinEscpmnt[BufNum,],TotEscpmnt,na.rm=TRUE)
-    SummaryStats$MaxEscpmnt[BufNum,] = pmax(SummaryStats$MaxEscpmnt[BufNum,],TotEscpmnt,na.rm=TRUE)
+  SummaryStats$MinEscpmnt[BufNum,] = pmin(SummaryStats$MinEscpmnt[BufNum,],TotEscpmnt,na.rm=TRUE)
+  SummaryStats$MaxEscpmnt[BufNum,] = pmax(SummaryStats$MaxEscpmnt[BufNum,],TotEscpmnt,na.rm=TRUE)
   #divide these by NRuns because we want the average over all runs
   SummaryStats$AvgEscpmnt[BufNum, ] = SummaryStats$AvgEscpmnt[BufNum, ] + TotEscpmnt/inputs$NRuns
   
@@ -97,7 +105,7 @@ CompStatsEEH = function(BufNum, inputs, BufSRb, YearStats, SummaryStats){ #BufNu
   TempBYrHR = BYrAEQMort / (BYrAEQMort + BYrEscpmnt)
   TempBYrHR[BYrAEQMort < 1E-16]=0
   #divide these by NRuns because we want the average over all runs
-
+  
   SummaryStats$BufAvgBYrHR[BufNum] = SummaryStats$BufAvgBYrHR[BufNum] + mean(TempBYrHR)/inputs$NRuns
   SummaryStats$AvgBYrHR[BufNum, ] = SummaryStats$AvgBYrHR[BufNum, ] + TempBYrHR/inputs$NRuns
   #don't divide these by NRuns because Max/Min
@@ -106,6 +114,6 @@ CompStatsEEH = function(BufNum, inputs, BufSRb, YearStats, SummaryStats){ #BufNu
   
   SummaryStats$AveRanMarine[BufNum] = SummaryStats$AveRanMarine[BufNum] + mean(YearStats$RanMarine)/inputs$NRuns
   SummaryStats$AveRanFlow[BufNum] = SummaryStats$AveRanFlow[BufNum] + mean(YearStats$RanFlow)/inputs$NRuns
-    
+  
   return(SummaryStats)
 }

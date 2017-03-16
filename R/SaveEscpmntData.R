@@ -1,4 +1,8 @@
-#'*****  SaveEscpmntData  *****
+#' @title SaveEscpmntData
+#' @description Write the .esc output file
+#' @param inputs Inputs from .rav file
+#' @param SummaryStats list with the summary statistics to be updated
+#' @return Nothing.  Writes file.
 SaveEscpmntData = function(inputs, SummaryStats){
 
 file = inputs$OutFileEsc;

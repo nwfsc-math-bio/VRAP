@@ -1,4 +1,11 @@
-# This function takes inputs list and creates a RAV file
+#' @title WriteRavFile
+#' @description This function takes inputs list and creates a RAV file
+#' @details This function is new to the R VRAP.  Needed to create record of the 
+#' .rav file used for the VRAP run in case the user changed .rav values in the
+#' shiny app.
+#' @param inputs Inputs from .rav file.
+#' @param filename Name of the .rav file to write.
+#' @return Nothing. .rav file is written.
 WriteRavFile = function( inputs, filename ) {
   includeMarineSurvival=includeFlow=FALSE
   if(inputs$SRType %in% c("BEV3","HOC3","RIC3")) includeFlow=TRUE
@@ -11,7 +18,7 @@ WriteRavFile = function( inputs, filename ) {
     inputs$NYears,", Number of years\n",
     inputs$MinAge,", ", inputs$MaxAge,", Minimum and maximum age (for now this is fixed; do not change)\n",
     inputs$ConvergeCrit,", Convergence criterion (% error) for target ER\n",
-    inputs$Debugg, ", Debug file flag\n",
+    inputs$CenterCov, ", Center covariates in SR function (as DM does)?\n",
     inputs$SRType,", Spawner Recruit function (Ric2;Ric3;Ric4; Bev2;Bev3;Bev4; Hoc2;Hoc3;Hoc4)\n",
     inputs$BSRa,",",inputs$BSRb,",",inputs$BSRc,",", inputs$BSRd, ", S/R a; b parameters; c (Marine); d (Freshwater)\n",
     ifelse(includeMarineSurvival, paste(inputs$MarAve,inputs$MarCV,sep=", "),""),ifelse(includeMarineSurvival,", ",""),"Mean and CV  for marine survival index (M^c)\n",

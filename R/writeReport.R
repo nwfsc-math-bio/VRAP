@@ -1,11 +1,13 @@
-#'*****  WriteReport   *****
-#'Create a pdf with basic information about the fit
-#' InFile is the .rav input file
-#' OutFileBase is where to save the outputfiles
+#' @title WriteReport
+#' @description Create a pdf with basic information about the VRAP output. 
+#' @details knit2pdf is used to create the pdf using Report-knitr-ER.xRnw or Report-knitr-Pop.xRnw (Sweave files) in inst/doc.
+#' @param InFile the .rav input file.
+#' @param OutFileBase basename to give the outputfiles.
+#' @param show.file Whether to open the pdf after it is produced.
+#' @return Nothing. The pdf is made and saved.
 WriteReport=function(InFile=NULL, OutFileBase=NULL, show.file=FALSE){
-  
-  #'READ INPUT DATA AND CALCULATE AEQs
-  #'direct from .rav file or simple calculation from rav file inputs
+  #READ INPUT DATA AND CALCULATE AEQs
+  #direct from .rav file or simple calculation from rav file inputs
   inputs=GetInput(InFile)
   if(is.null(OutFileBase)){
     tmp=strsplit(InFile,"\\\\")[[1]]
@@ -23,7 +25,7 @@ WriteReport=function(InFile=NULL, OutFileBase=NULL, show.file=FALSE){
   inputs = SetOutFileNames(OutFileBase, inputs, PathName=paste(getwd(),"/",sep=""))
   
   output.file = inputs$OutFileReport
-
+  
   
   if(str_sub(output.file,-4)==".pdf") output.file=str_sub(inputs$OutFileReport,1,-5)
   pkgpath <- find.package("VRAP")

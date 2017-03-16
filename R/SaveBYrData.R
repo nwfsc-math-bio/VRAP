@@ -1,4 +1,8 @@
-#'*****   SaveBYrData  ******
+#' @title SaveBYrData
+#' @description Write the .byr output file
+#' @param inputs Inputs from .rav file
+#' @param SummaryStats list with the summary statistics to be updated
+#' @return Nothing.  Writes file.
 SaveBYrData = function(inputs, SummaryStats){
 
 file = inputs$OutFileByr

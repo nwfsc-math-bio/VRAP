@@ -1,6 +1,8 @@
-#######################################################################
-## RunSims takes the input list and runs the VRAP functions
-#######################################################################
+#' @title RunSims
+#' @description RunSims takes the input list and runs the VRAP functions
+#' @param inputs Inputs from .rav file
+#' @param silent Whether to show progress bar
+#' @return  list with inputs, SummaryStats, staticvars, comp.time.
 RunSims = function(inputs, silent) {
 
   ## Set up list that will hold static computed variables.

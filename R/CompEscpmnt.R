@@ -1,5 +1,13 @@
-# '*****  CompEscpmnt  *****
-
+#' @title CompEscpmnt
+#' @description Compute escapement
+#' @param Regime Harvest regime.  
+#' @param Year Year to compute the escapement for.
+#' @param inputs Inputs from .rav file
+#' @param BufTargetU Target ER to use for simulation.  Adjusted if StepFunc=ER.
+#' @param Cohort Cohort
+#' @param AEQ Adult equivalents
+#' @param YearStats list of computed variables for each year: AEQMort, Escpmnt[Year,] = Escpmnt, TotAdultEscpmnt, TotAEQMort, TotEscpmnt,TempCohort.
+#' @return Updated YearStats list for value of variables in Year
 CompEscpmnt = function(Regime, Year, inputs, BufTargetU, Cohort, AEQ, YearStats){
   #If you have breakpoints, then Regime refers to which of these to use      
   #'INITIALIZE PARAMETERS, VARIABLES, AND ARRAYS

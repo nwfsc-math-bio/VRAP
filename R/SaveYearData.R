@@ -1,5 +1,8 @@
-# '*****  SaveYearData  ******
-# '******************************************************************
+#' @title SaveYearData
+#' @description Update CalendarHR[Year] in YearStats
+#' @param Year year
+#' @param YearStats list of computed variables for each year: AEQMort, Escpmnt[Year,] = Escpmnt, TotAdultEscpmnt, TotAEQMort, TotEscpmnt,TempCohort.
+#' @return Updated YearStats list
 SaveYearData = function(Year, YearStats){
   
   if(YearStats$TotAEQMort[Year] + YearStats$TotEscpmnt[Year] > 0.000000001){
@@ -10,7 +13,7 @@ SaveYearData = function(Year, YearStats){
   
   #Update AEQMort to hold total
   #in VB code Escpmnt (a vector for each age) is redefined to be TotEscpmnt (sum over ages)
-  #unclear why
+  #unclear why the commented out stats were created
 #   YearStats$AEQMort[Year] = YearStats$TotAEQMort
 #   YearStats$Escpmnt[Year] = YearStats$TotEscpmnt 
   YearStats$CalendarHR[Year] = HR

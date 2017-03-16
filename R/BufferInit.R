@@ -1,8 +1,11 @@
-# '*****  BufferInit  *****
-# 'ADJUST TARGET RATE FOR BUFFER EXPLOITATION
-# If the StepFunc is ER, then the simulation steps through different exploitation rates.
-# It does this by using the Target ER (in inputs$TargetU and multiplying that by a 'buffer' or scaling factor)
-
+#' @title BufferInit
+#' @description ADJUST TARGET RATE FOR BUFFER EXPLOITATION
+#' @details
+#' If the StepFunc is ER, then the simulation steps through different exploitation rates.
+#' It does this by using the Target ER (in inputs$TargetU and multiplying that by a 'buffer' or scaling factor)
+#' @param Buffer Scaling factor for Target ER
+#' @param inputs Inputs read from the .rav file
+#' @return list with new target rate for the simulation if StepFunc=ER or new capacity (b parameter in SR function) if StepFunc=Pop.
 BufferInit = function(Buffer, inputs){
   #These are the internal function variables
   # Defines MxR, SRb, QetR

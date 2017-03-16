@@ -1,3 +1,21 @@
+#' @title Main
+#' @description Runs VRAP. This function is largely specific to the R version of VRAP.
+#' @param InFile The name of the .rav file
+#' @param OutFileBase The basename for the .sum, .byr, and .esc output files
+#' @param NRuns Number of runs to use in the simulations if the user wants to use something different than what is in the .rav file
+#' @param NYears Number of years to project forward in the simulations if the user wants to use something different than what is in the .rav file
+#' @param Title Title to use for the report if the user wants to use something different than what is in the .rav file
+#' @param TargetStart Target ER to start simulations at if the user wants to use something different than what is in the .rav file
+#' @param TargetEnd Target ER to end simulations at if the user wants to use something different than what is in the .rav file
+#' @param TargetStep Target ER step sizes if the user wants to use something different than what is in the .rav file
+#' @param ERecovery Recovery target if the user wants to use something different than what is in the .rav file
+#' @param QET if the user wants to use something different than what is in the .rav file
+#' @param ECrit if the user wants to use something different than what is in the .rav file
+#' @param NewRavFileName A new .rav file is saved in case the user has changed any values from what is in the .rav file.
+#' @param forceNewRav Force use fo new rav file.  Needed for shiny app.
+#' @param silent Whether to show progress bar.
+#' @param lcores Number of cores to use.  Default is non-parallel so lcores=1
+#' @return list with output list from RunSims() and output time
 Main = function(InFile=NULL, OutFileBase=NULL, 
                 NRuns=-1, NYears=-1, Title=-1,
                 TargetStart=-1, TargetEnd=-1, TargetStep=-1,

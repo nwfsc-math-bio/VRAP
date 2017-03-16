@@ -1,4 +1,12 @@
-#'*************************  CompRecruits  *****
+#' @title CompRecruits
+#' @description Compute recruits
+#' @param YearStats list of computed variables for each year: AEQMort, Escpmnt[Year,] = Escpmnt, TotAdultEscpmnt, TotAEQMort, TotEscpmnt,TempCohort.
+#' @param Year Year to compute the escapement for.
+#' @param inputs Inputs from .rav file
+#' @param repvars repvars
+#' @param staticvars Static variables
+#' @param BufSRb Capacity.  Changes if StepFunc=Pop.  Otherwise stays the same.
+#' @return updated repvars list with: Cohort[1]=CohortAge1, LastRanFlow, LastRanError, LastRanMarine.
 CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
   
   #if StepFunc="Pop" then SRb (capacity) is being changed.
@@ -91,7 +99,13 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     if(RanFlow < 0){ RanFlow = 0 }
     LastRanFlow = RanFlow
     
-    FWS = exp(inputs$BSRd * RanFlow)
+    if(inputs$CenterCov=="YES"){
+      #This is how DM also writes the effect of marine survival
+      #flow is log-transformed so this works since FlowAve is mean of log(flow)
+      FWS = exp(inputs$BSRd * (RanFlow-inputs$logFlowMu))
+    }else{
+      FWS = exp(inputs$BSRd * RanFlow)
+    }
     if(FWS < 0) FWS = 0  
         
     if(inputs$SRType == "HOC3")
@@ -164,7 +178,13 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     if(RanMarine < 0) RanMarine = 0      
     LastRanMarine = RanMarine
     
-    MS = RanMarine^inputs$BSRc
+    if(inputs$CenterCov=="YES"){
+      #This is how DM writes the effect of marine survival
+      #log-transformed and centered
+      MS = exp(inputs$BSRc * (log(RanMarine)-inputs$logMSMu))
+    }else{
+      MS = RanMarine^inputs$BSRc
+    }
     if(MS < 0) MS = 0
     
     #Set the flow parameters
@@ -212,9 +232,13 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     if(RanFlow < 0) RanFlow = 0      
     LastRanFlow = RanFlow
     
-    FWS = exp(inputs$BSRd * RanFlow)
-    if(FWS < 0) FWS = 0
-    
+    if(inputs$CenterCov=="YES"){
+      FWS = exp(inputs$BSRd * (RanFlow-inputs$logFlowMu))
+    }else{
+      FWS = exp(inputs$BSRd * RanFlow)
+    }
+    if(FWS < 0) FWS = 0  
+
     if(inputs$SRType == "HOC4"){
       if(inputs$BSRa * Escpmnt > SRb){
       r=SRb * MS * FWS

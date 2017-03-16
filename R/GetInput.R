@@ -24,11 +24,19 @@ GetInput = function(InFile){
   inputs$MaxAge = readit(4,2) #line 4, NYears
   inputs$ConvergeCrit = readit(5,1) #line 5, ConvergeCrit
   inputs$CenterCov = readit(6,1) #line 6, was debug Debugg
+<<<<<<< HEAD
+  inputs$CenterCov = toupper(inputs$CenterCov)
+  if(!(inputs$CenterCov %in% c("YES", "NO"))) stop("Unknown covariate centering selection (yes/no only)")
+  if(inputs$CenterCov=="YES"){
+    inputs$logMSMu = readit(6,2) #line 6, the mean used for centering in DM: mean log MS
+    inputs$logFlowMu = readit(6,3) #line 6, the mean used for centering in DM: mean log Flow. Note flow is logged.
+=======
   inputs$CenterCov = toupper(inputs$CenterMS)
   if(!(inputs$CenterCov %in% c("YES", "NO"))) stop("Unknown covariate centering selection (yes/no only)")
   if(inputs$CenterCov=="YES"){
     inputs$logMSAve = readit(6,2) #line 6, need mean of log MS cov
     inputs$logFlowAve = readit(6,3) #line 6, need mean of log Flow; note, DM logs flow so logFlowAve is the same as FlowAve
+>>>>>>> origin/master
   }
     
 

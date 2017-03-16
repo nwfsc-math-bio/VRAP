@@ -1,7 +1,7 @@
-#'*****  GetInput   *****
-#'Read in a .rav file and assign all the variables
-#'Returns the list of all inputs
-#'
+#' @title GetInput
+#' @description Read in a .rav file and assign all the variables
+#' @param InFile the name of the .rav file
+#' @return Returns the list of all inputs
 GetInput = function(InFile){
   
   #The rav file has , as end of input/separator
@@ -23,10 +23,15 @@ GetInput = function(InFile){
   inputs$MinAge = readit(4,1) #line 4, NYears
   inputs$MaxAge = readit(4,2) #line 4, NYears
   inputs$ConvergeCrit = readit(5,1) #line 5, ConvergeCrit
-  inputs$Debugg = readit(6,1) #line 6, Debugg
-  inputs$Debugg = toupper(inputs$Debugg)
-  if(!(inputs$Debugg %in% c("YES", "NO"))) stop("Unknown debug selection (yes/no only)")  
-  
+  inputs$CenterCov = readit(6,1) #line 6, was debug Debugg
+  inputs$CenterCov = toupper(inputs$CenterCov)
+  if(!(inputs$CenterCov %in% c("YES", "NO"))) stop("Unknown covariate centering selection (yes/no only)")
+  if(inputs$CenterCov=="YES"){
+    inputs$logMSMu = readit(6,2) #line 6, the mean used for centering in DM: mean log MS
+    inputs$logFlowMu = readit(6,3) #line 6, the mean used for centering in DM: mean log Flow. Note flow is logged.
+  }
+    
+
   #'----- END OF RUN PARAMETERS SECTION ------------------------
   
   # '----- STOCK-RECRUIT SECTION -------------------------------

@@ -102,11 +102,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     if(inputs$CenterCov=="YES"){
       #This is how DM also writes the effect of marine survival
       #flow is log-transformed so this works since FlowAve is mean of log(flow)
-<<<<<<< HEAD
       FWS = exp(inputs$BSRd * (RanFlow-inputs$logFlowMu))
-=======
-      FWS = exp(inputs$BSRd * (RanFlow-inputs$FlowAve))
->>>>>>> origin/master
     }else{
       FWS = exp(inputs$BSRd * RanFlow)
     }
@@ -185,11 +181,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     if(inputs$CenterCov=="YES"){
       #This is how DM writes the effect of marine survival
       #log-transformed and centered
-<<<<<<< HEAD
       MS = exp(inputs$BSRc * (log(RanMarine)-inputs$logMSMu))
-=======
-      MS = exp(inputs$BSRc * (log(RanMarine)-inputs$logMSAve))
->>>>>>> origin/master
     }else{
       MS = RanMarine^inputs$BSRc
     }
@@ -241,11 +233,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     LastRanFlow = RanFlow
     
     if(inputs$CenterCov=="YES"){
-<<<<<<< HEAD
       FWS = exp(inputs$BSRd * (RanFlow-inputs$logFlowMu))
-=======
-      FWS = exp(inputs$BSRd * (RanFlow-inputs$FlowAve))
->>>>>>> origin/master
     }else{
       FWS = exp(inputs$BSRd * RanFlow)
     }

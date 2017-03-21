@@ -28,6 +28,7 @@ PROCESSINGMSG <- paste("Calculating - please wait.",
 RESULTSHELP <- HTML(includeHTML("html/help_results.html"))
 DOWNLOADSHELP <- HTML(includeHTML("html/help_downloads.html"))
 
+if(.Platform$OS.type=="windows") NOSCAN <- TRUE
 SCANCMD <- "clamdscan --fdpass --remove"
 
 DEMOFILESPATH <- "demofiles"
@@ -94,7 +95,11 @@ shinyServer( function(input, output, session) {
     returncode <- "SCANVIRUS"
     
     cmd <- paste(SCANCMD, path)
-    ec <- system(cmd)
+    if(NOSCAN){
+      ec <- 0
+      }else{
+        ec <- system(cmd)
+      }
     if (0 == ec) { return("SCANOKAY")}
     else if (1 == ec) {
       if (file.exists(path)) {

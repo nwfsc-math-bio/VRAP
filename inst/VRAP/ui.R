@@ -1,41 +1,156 @@
-shinyUI(pageWithSidebar(
-  headerPanel("VRAP R 1.3.1"),
-  sidebarPanel(
-    fileInput('file1', 'Step 1: Choose .rav file from your file system:',
-              accept=c('text/csv', 'text/comma-separated-values,text/plain')),
-    uiOutput('timest'),
-    radioButtons('NRuns', 'Step 2: Choose (or change) number of runs (NRuns) per simulation',
-                 c('1'=1, 
-                   '10'=10, 
-                   '100'=100,
-                   '1000'=1000,
-                   'Use .rav NRuns' = -1),
-                 'Use .rav NRuns'),
-    actionButton('recalcButton', 'Step 3: Run VRAP with selected file and NRuns'),
-    conditionalPanel("input.recalcButton > 0 && !(updateBusy()) && !( $('#contents').hasClass('recalculating') )", 
-                     tags$hr(),
-                     tags$h3('Download VRAP output files'),
-                     selectInput("os", "Choose OS:",
-                                 list("Windows" = "win", 
-                                      "Mac/Unix" = "unix")),
-                     tags$br(),
-                     downloadButton('downloadByr', 'Byr File'),
-                     downloadButton('downloadEsc', 'Esc File'),
-                     downloadButton('downloadSum', 'Sum File') ),
-    tags$hr(),
-    tags$h5('If needed, you can download an example .rav file to use:'),
-    selectInput( "file2", "Choose an example .rav file",
-                 c("Bev-Holt, no covariates, ER" = "exampleB2ER.rav",
-                   "Bev-Holt, with covariates, Pop" = "exampleB4Pop.rav") ),
-    tags$br(),
-    downloadButton('downloadExample', 'Download Example File')    
+.libPaths(c("/usr/lib64/R/shiny_library",.libPaths()))
+library(appFrame)
+
+source("version.R")
+
+appTitle <- paste0("<span title='Shiny app version / Package version' ",
+                   "style='font-weight:700;font-size:24px'>",
+                   shiny.version)
+theversion <- packageVersion("VRAP")
+if (!is.null(theversion) && length(theversion)>0) {
+  appTitle <- paste0(appTitle, " / ",theversion)
+} else {
+  appTitle <- paste0(appTitle,"</span")
+}
+
+
+source("common.R")  ## import EXAMPLES, shared with server.R
+
+fluidPage(
+  appFrameHeaderFixed(),
+  titlePanel(HTML(appTitle),windowTitle="VRAP"),
+  conditionalPanel(
+    condition=paste("$('html').attr('class')=='shiny-busy' || ",
+                    "$('spinnerhost').hasClass('busy')",sep=""),
+    div(textOutput("dummy2")),
+    div(id="spinnerhost",
+        class="busy",
+        p(id="waitmsg", " "),
+        img(src="spinner.gif",
+            alt=paste("Busy, please wait",
+                      "(Close browser window to stop job)"
+                      )
+            )
+        )
   ),
-  mainPanel(
-    conditionalPanel("!(updateBusy()) && !( $('#contents').hasClass('recalculating') )", uiOutput('contents')),
-    conditionalPanel("updateBusy() || $('#contents').hasClass('recalculating')",
-                     id='progressIndicator',                     
-                     "Working... (to kill, close the browser tab)",
-                     div(id='progress',includeHTML("timer.js"))
+  conditionalPanel(
+    condition="$('#msghost').hasClass('msgdisplay')",
+    div(id="msghost",
+        class="nomsgdisplay",
+        p(id="msghostmsg","the message"),
+        actionButton("msgclosebtn", "Close")
+        )
+  ),
+  tabsetPanel(
+    id="tabset",
+    tabPanel(
+      title="Run VRAP",
+      value="datainputtab",
+      br(),
+      selectInput(
+        "type", "Step 1: Input data",
+         list("Upload .rav file (click to select demo instead)" = "upload",
+             "Choose a demo file (click to upload  data instead)" = "demo"),
+        selected="upload",
+        width="400px"
+      ),
+      conditionalPanel(
+        "input.type == 'upload'",
+        uiOutput("fileuploadctl1")
+      ),
+      conditionalPanel(
+        "input.type == 'demo'",
+        selectInput("demofile", "Select demo file:", EXAMPLES)),
+      uiOutput('timest'),
+      radioButtons(
+        'NRuns',
+        'Step 2: Choose (or change) number of runs (NRuns) per simulation',
+        c('1'=1, '10'=10, '100'=100, '1000'=1000, 'Use .rav NRuns' = -1),
+        selected=-1),
+      tags$br(),
+      HTML("Step 3: Run VRAP. <em>Button appears after step 1 completed</em>."),
+      conditionalPanel("output.fileselected",
+                       actionButton('recalcButton', 'Run VRAP with selected file and NRuns')
+                       ),
+      tags$hr(),
+      selectInput( "file2", "Download the example .rav files:", EXAMPLES),
+      downloadButton('downloadExample', 'Download Example File'),
+      tags$br(),
+      tags$br(),
+      tags$br()
+    ),
+    tabPanel(
+      title="Results (.sum)",
+      value="resultstabsum",
+      uiOutput('contentssum')
+    ),
+    tabPanel(
+      title="Results (.byr)",
+      value="resultstabbyr",
+      uiOutput('contentsbyr')
+    ),
+    tabPanel(
+      title="Results (.esc)",
+      value="resultstabesc",
+      uiOutput('contentsesc')
+    ),
+    tabPanel(
+      title="Downloads",
+      value="downloadstab",
+      uiOutput("contentsdownloads")
+    ),
+    tabPanel(
+      title="Help",
+      value="helptab",
+      includeHTML("html/help_main.html")
+    ),
+    tabPanel(
+      title="About",
+      id="aboutPanel",
+      h4("About VRAP"),
+      includeHTML("html/app.html")
+    ),
+    selected="helptab",
+    tags$head(
+      tags$script(
+        HTML("Shiny.addCustomMessageHandler('setspinner',
+                      function(msg) {
+                         $('#spinnerhost').attr('class',msg);
+                      })"
+             )
+      ),
+      tags$script(
+        HTML("Shiny.addCustomMessageHandler('setmsg',
+                      function(msg) {
+                         $('#msghostmsg').html(msg);
+                         $('#msghost').attr('class', 'msgdisplay');
+                      })"
+             )
+      ),
+      tags$script(
+        HTML("Shiny.addCustomMessageHandler('setwaitmsg',
+                      function(msg) {
+                         $('#waitmsg').html(msg);
+                      })"
+             )
+      ),
+      tags$script(
+        HTML("Shiny.addCustomMessageHandler('clearmsg',
+                      function(msg) {
+                         $('#msghostmsg').html('');
+                         $('#msghost').attr('class', 'nomsgdisplay');
+                      })"
+             )
+      ),
+      tags$script(
+        HTML("Shiny.addCustomMessageHandler('resetfileupload',
+                      function(msg) {
+                         $('#file1_progress > .progress-bar').css('width','0%');
+                      })"
+             )
+      ),
+      tags$link(rel="stylesheet", type="text/css", href="style.css")
     )
-  )
-))
+  ),
+  appFrameFooterFixed(displayAppsURL="../..")
+)

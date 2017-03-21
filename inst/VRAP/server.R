@@ -1,8 +1,7 @@
 .libPaths(c("/usr/lib64/R/shiny_library",.libPaths()))
 require(VRAP, quietly=TRUE)
-require(shiny, quietly=TRUE)
-
-source("common.R")   ## import EXAMPLES, shared with server.R
+require(shiny, quietly=TRUE) #0.6.0
+require(shinyAce, quietly=TRUE)
 
 if (file.exists("parcores.R")) {
   source("parcores.R")
@@ -10,6 +9,7 @@ if (file.exists("parcores.R")) {
   parcores <- function() { 1 }
 }
 
+## texts of user alerts and errors
 VIRUSDETECTIONMSG <- paste("<b>The uploaded file has triggered",
                            "a virus detection.</br>",
                            "Please contact a",
@@ -25,18 +25,33 @@ PROCESSINGMSG <- paste("Calculating - please wait.",
                        "</br>",
                        "<em>Close browser window to halt processing</em>")
 
+## HTML help contents
 RESULTSHELP <- HTML(includeHTML("html/help_results.html"))
 DOWNLOADSHELP <- HTML(includeHTML("html/help_downloads.html"))
 
+## system command to invoke clamdscan
 SCANCMD <- "clamdscan --fdpass --remove"
 
+## (relative) path to demo files
 DEMOFILESPATH <- "demofiles"
+
+## outputfile prefix
 OUTFILEBASENAME <- "VRAPresults"
 
+## attach timestamp to end of filename
+## (filename should not include extension)
 appendTimestamp <- function(filename) {
   paste0(filename,"_",strftime(Sys.time(),"%Y%m%d_%H%M%S"))
 }
 
+## extract timestamp from timestamped filename
+## filename_20161230_111111[.txt]
+extractTimestamp <- function(filename) {
+  basename <- stringr::str_replace(filename,"\\.[^.]*$","")
+  stringr::str_extract(basename,"\\d{8}_\\d{6}$")
+}
+
+## remove files and directories generated during knitr processing
 cleanupKnitr <- function(knitrdir=".") {
   file.remove(Sys.glob(c("*.tex","*.aux","*.log")))
   unlink("figure",recursive=TRUE)
@@ -44,34 +59,47 @@ cleanupKnitr <- function(knitrdir=".") {
 
 shinyServer( function(input, output, session) {
 
+  ## persistent state: the app must remember these values from
+  ## one user interaction to the next
+  
   ## number of (logical) cores available
   lcores <- parcores()
-  
-  OUTPUTDIR <- NULL
 
-  currentinputfile <- NULL
-  
-  switches <- reactiveValues(resetupload=TRUE,
-                             refreshresults=FALSE,
-                             downloadstatus=FALSE,
-                             inputfilestatus=TRUE,
-                             sumOutput=RESULTSHELP,
-                             byrOutput=RESULTSHELP,
-                             escOutput=RESULTSHELP,
-                             downloads=DOWNLOADSHELP
-                             )
-  ## reset the file upload control by
-  ##    switches$resetupload = !switches$resetupload
-  ## trigger a results tab refresh by
-  ##    switches$refreshresults = !switches$refreshresults
+  cancelRavUpload <- reactive({
+    tmp <- switches$resetupload
+    isolate({
+      switches$resetupload <- FALSE
+    })
+    tmp
+  })
 
-  if (("request" %in% names(session)) &&
-        ("HTTP_USER_AGENT" %in% names(session$request))) {
-    osIsWindows <- grepl("windows", session$request$HTTP_USER_AGENT,
-                         ignore.case=TRUE)
-  } else {
-    osIsWindows <- TRUE
+  ## file uploader
+  fileUpload <- callModule(consecFileUpload, "ravupload",
+                           cancelRavUpload,
+                           currentFileLabel="Current rav file:",
+                           accept=c(".rav",".RAV",".Rav"))
+  ## output directory
+  ## set in getOutputDirectory()
+  outputdir <- NULL   
+
+  getOutputDirectory <- function() {
+    if (is.null(outputdir)) {
+      outputdir <<- tempfile("vrapout")
+      dir.create(path=outputdir)
+    }
+    outputdir
   }
+
+  getUploadDirectory <- function() {
+    if (is.null(fileUpload())) {
+      return(NULL)
+    }
+    dirname(fileUpload()$datapath)
+  }
+
+  ## current input
+  ## set/reset in setCurrentInput(); get in getCurrentInput
+  currentinputfile <- NULL   
 
   setCurrentInput <- function(settofile=NULL,deleteexisting=FALSE) {
     if (deleteexisting) {
@@ -82,12 +110,48 @@ shinyServer( function(input, output, session) {
       }
     }
     currentinputfile <<- settofile;
+    if (!is.null(currentinputfile)) {
+      setRavEditor()
+    }
   }
 
   getCurrentInput <- function() {
     return(currentinputfile);
   }
   
+  
+  ## origRavValues <- NULL
+  ## newRavValues <- NULL
+  usemodrav <- FALSE
+
+  ## reactive triggers; most of these act as signals
+  switches <- reactiveValues(resetupload=FALSE,
+                             refreshresults=FALSE,
+                             downloadstatus=FALSE,
+                             sumOutput=RESULTSHELP,
+                             byrOutput=RESULTSHELP,
+                             escOutput=RESULTSHELP,
+                             downloads=DOWNLOADSHELP,
+                             ravparamsokay=TRUE,
+                             editedravinput=FALSE
+                             )
+  ## reset the file upload control by
+  ##    switches$resetupload = TRUE
+  ## trigger a results tab refresh by
+  ##    switches$refreshresults = !switches$refreshresults
+
+  
+  ## attempt to detect user platform in order to set download
+  ## file format default properly.
+  if (("request" %in% names(session)) &&
+        ("HTTP_USER_AGENT" %in% names(session$request))) {
+    osIsWindows <- grepl("windows", session$request$HTTP_USER_AGENT,
+                         ignore.case=TRUE)
+  } else {
+    osIsWindows <- TRUE
+  }
+
+  ## virus scanner
   scanclam <- function(path) {
     if (is.null(path)) { return("SCANNOFILE") }
 
@@ -106,7 +170,7 @@ shinyServer( function(input, output, session) {
     ## at this point, something isn't right with the upload
     ## and the file upload control needs resetting
 
-    switches$resetupload = !switches$resetupload
+    switches$resetupload <- TRUE
     
     return(returncode)
   }
@@ -115,6 +179,8 @@ shinyServer( function(input, output, session) {
     tempfile("dltmp")
   }
 
+  ## output path base name (i.e., without extension)
+  ## set/reset in getBaseName
   baseName <- NULL
 
   getBaseName <- function(delete=FALSE) {
@@ -126,14 +192,6 @@ shinyServer( function(input, output, session) {
     return( baseName );
   }
 
-  getOutputDirectory <- function() {
-    if (is.null(OUTPUTDIR)) {
-      OUTPUTDIR <<- tempfile("vrapout")
-      dir.create(path=OUTPUTDIR)
-    }
-    OUTPUTDIR
-  }
-
   outputPathBase <- function() {
     return(file.path(getOutputDirectory(), getBaseName()))
   }
@@ -143,13 +201,13 @@ shinyServer( function(input, output, session) {
   }
   
   inputFileDisplayName <- function() {
-    return(
-      switch(input$type,
-             demo=names(EXAMPLES)[EXAMPLES==input$demofile],
-             upload=input$file1$name,
-             NULL
-             )
-    )
+    demoPrefix <- if(usemodrav) {"Edited demo :"} else {"Demo :"}
+    switch(inputtype(),
+           demo=paste(demoPrefix,names(EXAMPLES)[EXAMPLES==input$demofile]),
+           upload=inputfile()[2],
+           NULL
+           )
+
   }
 
   
@@ -204,18 +262,14 @@ shinyServer( function(input, output, session) {
     return(3==length(Sys.glob(outputPath(".*"))))
   }
   
-  output$fileuploadctl1 <- renderUI({
-    switches$resetupload
-    input$type
-    isolate({
-    })
-    fileInput('file1', 'Choose .rav file from your file system',
-              accept=c(".rav",".RAV"))
-  })
-
-  clearOutputDirectory <- function() {
-    getBaseName(delete=TRUE)
-    unlink(file.path(getOutputDirectory(),"*"))
+  clearOutputDirectory <- function(clearall=TRUE) {
+    if (clearall) {
+      getBaseName(delete=TRUE)
+      unlink(file.path(getOutputDirectory(),"*"))
+    } else {
+      unlink(file.path(getOutputDirectory(),
+                       c("*.byr","*.esc","*.sum","*.pdf")))
+    }
   }
 
   session$onSessionEnded(function(){
@@ -238,11 +292,19 @@ shinyServer( function(input, output, session) {
   downloadControls <- function() {
     sel <- "win"
     if (!is.null(osIsWindows) && !osIsWindows) { sel="unix" }
+
     report <- if(file.exists(outputPath(".pdf"))) {
       downloadButton('downloadRpt', 'Report')
     } else {
       NULL
     }
+
+    rav <- if (usemodrav && file.exists(getCurrentInput())) {
+      downloadButton("downloadRav", "Rav")
+    } else {
+      NULL
+    }
+    
     return(
       list(
         tags$hr(),
@@ -251,11 +313,11 @@ shinyServer( function(input, output, session) {
                     list("Windows" = "win", 
                          "Mac/Unix" = "unix"),
                     selected=sel),
-        ## downloadButton('downloadRpt', 'Report'),
         report,
         downloadButton('downloadByr', 'Byr File'),
         downloadButton('downloadEsc', 'Esc File'),
-        downloadButton('downloadSum', 'Sum File')
+        downloadButton('downloadSum', 'Sum File'),
+        rav
       )
     )
   }
@@ -265,32 +327,40 @@ shinyServer( function(input, output, session) {
     switches$downloads
   })
 
-  observe({
-    input$type
+  ## Wrap a reactive around input$type so that certain actions willx
+  ## be taken whenever it changes.
+  ## Don't reference input$type directly elsewhere in the code.
+  
+  inputtype <- reactive({
     isolate({
       clearOutputDirectory()
+      setCurrentInput(NULL, deleteexisting=TRUE)
       switches$downloadstatus <- !switches$downloadstatus
       switches$sumOutput <- RESULTSHELP
       switches$byrOutput <- RESULTSHELP
       switches$escOutput <- RESULTSHELP
       switches$downloads <- DOWNLOADSHELP
+      switches$resetupload <- TRUE
     })
+    input$type
   })
-  
+
   observe({
-    input$recalcButton
+    req(input$recalcButton)
 
     ## Don't do anything until after the first button push.
     isolate({
       if (input$recalcButton == 0){
         HTML("")
-      } else if(input$type=="upload" && is.null(input$file1)) {
+      ## } else if(inputtype()=="upload" && is.null(input$file1)) {
+      } else if(inputtype()=="upload" && is.null(fileUpload())) {
         HTML("Select an input file")
       } else {
         session$sendCustomMessage('setspinner','busy')
         session$sendCustomMessage('setwaitmsg', PROCESSINGMSG)
 
-        clearOutputDirectory()
+         ## must modify behavior if using edited rav file
+        clearOutputDirectory(clearall=FALSE)
         
         ## Note that just by virtue of checking the value
         ## of input$recalcButton, we're now going to get
@@ -302,9 +372,12 @@ shinyServer( function(input, output, session) {
         ## contain the local filenames where the data can
         ## be found.
 
+
         capture.output({
           tmp <- Main(inputfile()[1], OutFileBase=outputPathBase(),
-                      NRuns=inNRuns(), silent=TRUE, lcores=lcores)
+                      NRuns=inNRuns(),
+                      forceNewRav=TRUE,
+                      silent=TRUE, lcores=lcores)
         })
         
         output <- VRAP:::SaveSummary(tmp$inputs,
@@ -314,8 +387,16 @@ shinyServer( function(input, output, session) {
         if (tmp$inputs$StepFunc == "ER") {
           ## create the report file
           owd <- setwd(getOutputDirectory())
-          VRAP:::WriteReport(inputfile()[1], getBaseName())
-          cleanupKnitr()
+          uld <- getUploadDirectory()
+          if (!is.null(uld)) {
+            tmpravPath <- file.path(uld,"tmprav.rav")
+            if (file.exists(tmpravPath)) {
+              file.rename(tmpravPath,
+                          file.path(getOutputDirectory(),"tmprav.rav"))}
+          }
+          VRAP:::WriteReport(file.path(getOutputDirectory(),"tmprav.rav"),
+                             getBaseName())
+            cleanupKnitr()
           setwd(owd)
           ## done with report file
         }
@@ -374,29 +455,29 @@ shinyServer( function(input, output, session) {
     
   }
 
+  output$runbutton <- renderUI({
+    switches$editedravinput
+    uploadedFileInput()
+    demoFileInput()
+    if (usemodrav) {
+      actionButton('recalcButton',
+                   HTML("<b>Run VRAP</b> with <b>edited parameters</b> and NRuns"))
+    } else {
+      actionButton('recalcButton',
+                   HTML("<b>Run VRAP</b> with selected file and NRuns"))
+    }
+  })
 
   output$timest <- renderUI({
-    switch(input$type,
-           upload = {
-             inFile <- inputfile()
-             if(is.null(inFile)) {return(NULL)}
-             else {inFilePath <- inFile[1]}
-           },
-           demo = {
-             inFilePath <- file.path(DEMOFILESPATH,input$demofile)
-           },
-           {
-             ## default choice
-             return(NULL)
-           })
-
+    inFilePath <- inputfile()[1]
+    
     if (is.null(inFilePath) || !file.exists(inFilePath)) return(NULL)
     
     outfile = file.path(getOutputDirectory(),"vrap_timest")
     session$sendCustomMessage('setwaitmsg', WAITESTIMATINGMSG)
-
     capture.output({
       mainres = Main(inFilePath, OutFileBase=outfile, NRuns=1,
+                     forceNewRav=FALSE,
                      silent=TRUE, lcores=lcores)
     })
 
@@ -418,8 +499,15 @@ shinyServer( function(input, output, session) {
     out.time <- mainres$output.time[1]
     timest <- round(processing.time * tmpruns + out.time)
 
-    HTML(paste("estimated time for this file and NRuns =",
-               timest,"seconds<br/><br/>"))
+    nrunstext <- if (as.numeric(input$NRuns == -1)) { "specified in file" }
+    else { paste0("= ",input$NRuns) }
+
+    timesttext <- paste0(timest," second");
+    if (timest != 1) {timesttext <- paste0(timesttext,"s")}
+
+    HTML(paste("Estimated time for", inputfile()[2],"and NRuns",
+               nrunstext, ":",
+               timesttext,"<br/><br/>"))
   })
 
   observe({
@@ -427,52 +515,260 @@ shinyServer( function(input, output, session) {
       session$sendCustomMessage('clearmsg','reset')
     }
   })
-  
+
+  uploadedFileInput <- reactive({
+    usemodrav <<- FALSE
+    fileUpload()
+  })
+
+  demoFileInput <- reactive({
+    inputtype()
+    input$demofile
+    usemodrav <<- FALSE
+    inFilePath <- normalizePath(file.path(DEMOFILESPATH,input$demofile))
+    inFileName <- input$demofile
+    list(inFileName,inFilePath)
+  })
+
+  observe({
+    inputtype()
+    fileUpload()
+    input$demofile
+
+    isolate({
+      inputfile()
+    })
+  })
+
   inputfile <- reactive({
-    inFilePath <- NULL
-    setCurrentInput(inFilePath, TRUE)
-    if (input$type %in% c("paste","upload")) {
-      inFilePath <- NULL
-
-      testPath <- input$file1$datapath
-      if (is.null(testPath) ||
-            !file.exists(testPath)) { return(NULL) }
-      
-      session$sendCustomMessage('setwaitmsg', WAITSCANNINGMSG)
-
-      switch(scanclam(testPath),
-             SCANNOFILE={
-               ## ignore
-             },
-             SCANOKAY=isolate({
-               inFilePath <- testPath
-             }),
-             SCANVIRUS=isolate({
-               ## virus found
-               themsg <- VIRUSDETECTIONMSG
-               session$sendCustomMessage('setmsg', themsg)
-             }),
-             isolate({
-               ## error, default
-               themsg <- UPLOADERRORMSG
-               session$sendCustomMessage('setmsg', themsg)
-             }))
-    } else if (input$type == "demo") {
-      inFilePath = normalizePath(file.path(DEMOFILESPATH,input$demofile))
-    }
+    switches$editedravinput
+    demoFileInput()
+    uploadedFileInput()
     
-    if (is.null(inFilePath)) return(NULL)
-    setCurrentInput(inFilePath)
-    outfile <- outputPathBase()
-    return(c(inFilePath, outfile))
+    inFilePath <- NULL
+    inFileName <- NULL
+
+    if (usemodrav) {
+      inFilePath <- getCurrentInput()
+      inFileName <- basename(inFilePath)
+    } else {
+      setCurrentInput(inFilePath, deleteexisting=TRUE)
+      
+      if (inputtype() == "upload") {
+        inFileName <- uploadedFileInput()$name
+        testPath <- uploadedFileInput()$datapath
+
+        if (is.null(testPath) || !file.exists(testPath)) { return(NULL) }
+        
+        session$sendCustomMessage('setwaitmsg', WAITSCANNINGMSG)
+
+        switch(scanclam(testPath),
+               SCANNOFILE={
+                 ## ignore
+               },
+               SCANOKAY=isolate({
+                 ## check for parameter errors
+                 if(ravCheck(testPath, inFileName)) {
+                   inFilePath <- testPath
+                 }
+               }),
+               SCANVIRUS=isolate({
+                 ## virus found
+                 themsg <- VIRUSDETECTIONMSG
+                 session$sendCustomMessage('setmsg', themsg)
+               }),
+               isolate({
+                 ## error, default
+                 themsg <- UPLOADERRORMSG
+                 session$sendCustomMessage('setmsg', themsg)
+               }))
+
+        ## if the upload failed, reset the upload control
+        switches$resetupload <- is.null(inFilePath)
+        
+      } else if (inputtype() == "demo") {
+        demoFile <- demoFileInput()
+        demoCopy <- file.path(getOutputDirectory(), demoFile[[1]])
+        file.copy(demoFile[[2]],demoCopy)
+        inFileName <- demoFile[[1]]
+        inFilePath <- demoCopy
+      }
+      
+      if (is.null(inFilePath)) { return(NULL) }
+      
+      setCurrentInput(inFilePath)
+    }
+    return(c(inFilePath, inFileName))
   })
   
   inNRuns <- reactive({
     return(as.numeric(input$NRuns))
   })
 
+  ###########################################################
+  ## RAV editing
+  ###########################################################
 
-  ## file download handlers
+  output$ravsavebutton <- renderUI({
+    if (switches$ravparamsokay) {
+      actionButton("saveravedits",
+                   label="Save edits",
+                   title="Click to save changes to RAV parameters")
+    } else {
+      actionButton("saveravedits",
+                   label="Save edits",
+                   title=paste("Correct parameters mismatches,",
+                               "then click to save changes"),
+                   disabled="disabled")
+    }
+  })
+
+  observe({
+    req(input$saveravedits > 0)
+    isolate({
+      saveModRav(input$raveditor)
+    })
+  })
+
+  genModRavName <- function(currInputFile) {
+    fileName <- basename(currInputFile)
+  }
+
+  ravCheck <- function(filepath, filename) {
+    if (file.exists(filepath)) {
+      resp <- ravchecker(filepath)
+      if (length(resp) > 0) {
+        thes <- if(length(resp) > 1) {"s"} else {""}
+        msg <- paste0("Problem",thes," in ", filename,":<br/><br/>",
+                     paste(resp,collapse="<br/>"))
+
+        session$sendCustomMessage('setmsg', msg)
+        return(FALSE)
+      } else {
+        return(TRUE)
+      }
+    } else {
+      warning("Attempting to check rav file ", filepath,
+              ": file does not exist.")
+      return(FALSE)
+    }
+  }
+
+  ## On return, setCurrentInput has been called with the path to
+  ## the modified rav file
+  saveModRav <- function(newRav) {
+    if (is.null(newRav)) {
+      cat("Error: newRav is NULL\n")
+      return()
+    }
+
+    testRavPath <- tempfile(pattern="testrav",fileext="rav")
+    
+    cat(newRav, "\n", file=testRavPath)
+    if (!ravCheck(testRavPath, "edited rav file")) {
+      return();
+    }
+    
+    currInput <- inputfile()[2]
+
+    ## remove extension
+    currInput <- str_replace(currInput,"\\.[^.]*$","")
+
+    ## look for an edit version, extracting filename as well
+    nameAndVersion <-
+          stringr::str_match(currInput,"([^/]+)_edit_(\\d{2})_\\d{8}_\\d{6}")
+
+    ## if no edit version, set new version to 1
+    ## o'wise, set to 1 plus current, wrapping at 100
+    newName <- NULL
+    if(is.na(nameAndVersion[1])) {
+      newVersion <- 1
+      newName <- currInput
+    } else {
+      newVersion <- (as.integer(nameAndVersion[3]) %% 99) + 1
+      newName <- nameAndVersion[2]
+    }
+    verString <- sprintf("%02d",newVersion)
+    
+    ## create a new output directory and timestamp
+    clearOutputDirectory()
+    pathBase <- outputPathBase()
+
+    ## extract that timestamp
+    timestamp <- extractTimestamp(pathBase)
+    
+    ## create rav file name and path
+    modRavName <- sprintf("%s_edit_%02d_%s.rav",newName,newVersion,timestamp)
+    modRavPath <- file.path(getOutputDirectory(), modRavName)
+
+    ## move the new rav file
+    file.rename(testRavPath, modRavPath);
+    setCurrentInput(modRavPath,deleteexisting=TRUE)
+
+    usemodrav <<- TRUE
+    switches$editedravinput <- !switches$editedravinput
+  }
+
+  updateNRuns <-  function(nruns, orig=FALSE) {
+    if (orig) {
+      ravchoice <- paste("rav value:",nruns)
+      choices=c(1, 10, 100, 1000, nruns)
+      ## choices=c(1, 10, 100, 1000, -1)
+      names(choices) <- c("1","10","100","1000",ravchoice)
+      selected <- nruns
+      updateRadioButtons(session, "ravnruns", choices=choices,
+                         selected=selected, inline=TRUE)
+    } else {
+      nruns <- min(1000,max(1,nruns))
+      selected <- 10^(round(log10(nruns)))
+      updateRadioButtons(session, "ravnruns", selected=selected,
+                         inline=TRUE)
+    }
+  }
+
+  updateNYears <- function(nyears) {
+    nyears <- min(max(nyears, 10),100)
+    nyears <- if(nyears < 18) {
+      10
+    } else {
+      round(nyears / 25) * 25
+    }
+    updateRadioButtons(session, "ravnyears", selected=nyears)
+  }
+
+  updateTargetStep <- function(step) {
+    step <- min(max(.01,step),0.2)
+    step <- if (step <= 0.03) {
+      .01
+    } else {
+      round(step / .05) * .05
+    }
+    updateRadioButtons(session, "ravtargetstep", selected=step)
+  }
+  
+  setRavEditor <- function() {
+    currInput <- getCurrentInput()
+    if (is.null(currInput) || !file.exists(currInput)) {
+      inputText <- ""
+    } else {
+      con <- file(currInput,open="r")
+      inputText <<- paste(readLines(con),sep='',collapse='\n')
+      close(con)
+    }
+    ## updateAceEditor(session, "raveditor", inputText)
+    output$theraveditor <- renderUI(
+      aceEditor(outputId="raveditor",
+                cursorId="raveditorcursor",
+                mode="text",
+                height="450px",
+                value=inputText)
+    )
+
+  }
+
+  ###########################################################
+  ## download handlers
+  ###########################################################
 
   downloadHelper <- function(file, ext) {
     if (input$os == "win") {
@@ -506,14 +802,25 @@ shinyServer( function(input, output, session) {
     content = function(file) {file.copy(outputPath(".pdf"), file)}
   )
   
+  output$downloadRav <- downloadHandler(
+    filename = function() {basename(getCurrentInput())},
+    content = function(file) {file.copy(getCurrentInput(), file)}
+  )
+  
   output$downloadExample <- downloadHandler(
     filename = function() {"example.rav" },
     content = function(file) {file.copy(file.path(DEMOFILESPATH,input$file2),file)}
   )
   
+  ###########################################################
+  ## Signals
+  ###########################################################
+
+
   ## This bit is detected if an input file has been selected
+
   output$fileselected <- reactive({
-    switch(input$type,
+    switch(inputtype(),
            upload = {return(inputFileExists())},
            demo = {return(TRUE)}
            )
@@ -525,4 +832,11 @@ shinyServer( function(input, output, session) {
     outputFilesExist()
   })
   outputOptions(output, 'downloadsready', suspendWhenHidden=FALSE)
+
+  output$theraveditor <- renderUI(
+              aceEditor(outputId="raveditor",
+                    cursorId="raveditorcursor",
+                    mode="text",
+                    height="600px")
+  )
 })

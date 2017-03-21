@@ -1,20 +1,21 @@
 .libPaths(c("/usr/lib64/R/shiny_library",.libPaths()))
 library(appFrame)
+require(shinyAce)
 
 source("version.R")
 
 appTitle <- paste0("<span title='Shiny app version / Package version' ",
                    "style='font-weight:700;font-size:24px'>",
                    shiny.version)
-theversion <- packageVersion("VRAP")
-if (!is.null(theversion) && length(theversion)>0) {
-  appTitle <- paste0(appTitle, " / ",theversion)
+
+vrapVersion <- packageVersion("VRAP")
+COLWIDTH <- 5
+
+if (!is.null(vrapVersion) && length(vrapVersion)>0) {
+  appTitle <- paste0(appTitle, " / ",vrapVersion)
 } else {
   appTitle <- paste0(appTitle,"</span")
 }
-
-
-source("common.R")  ## import EXAMPLES, shared with server.R
 
 fluidPage(
   appFrameHeaderFixed(),
@@ -47,37 +48,112 @@ fluidPage(
       title="Run VRAP",
       value="datainputtab",
       br(),
-      selectInput(
-        "type", "Step 1: Input data",
-         list("Upload .rav file (click to select demo instead)" = "upload",
-             "Choose a demo file (click to upload  data instead)" = "demo"),
-        selected="upload",
-        width="400px"
+      fluidRow(
+        column(
+          COLWIDTH,
+          selectInput(
+            "type", "Step 1: Input data",
+            list("Upload .rav file (click to select demo instead)" = "upload",
+                 "Choose a demo file (click to upload data instead)" = "demo"),
+            selected="upload",
+            width="400px"
+          )
+        ),
+        column(
+          COLWIDTH,
+          conditionalPanel(
+            "input.type == 'upload'",
+            div(id="uploadravfilediv", strong("Upload rav file:")),
+            consecFileUploadInput("ravupload",
+                                  "Choose .rav file"),
+            br()
+          ),
+          conditionalPanel(
+            "input.type == 'demo'",
+            selectInput("demofile", "Select demo file:", EXAMPLES))
+        )
       ),
-      conditionalPanel(
-        "input.type == 'upload'",
-        uiOutput("fileuploadctl1")
+      fluidRow(
+        column(
+          2*COLWIDTH,
+          uiOutput('timest')
+        )
       ),
-      conditionalPanel(
-        "input.type == 'demo'",
-        selectInput("demofile", "Select demo file:", EXAMPLES)),
-      uiOutput('timest'),
-      radioButtons(
-        'NRuns',
-        'Step 2: Choose (or change) number of runs (NRuns) per simulation',
-        c('1'=1, '10'=10, '100'=100, '1000'=1000, 'Use .rav NRuns' = -1),
-        selected=-1),
-      tags$br(),
-      HTML("Step 3: Run VRAP. <em>Button appears after step 1 completed</em>."),
-      conditionalPanel("output.fileselected",
-                       actionButton('recalcButton', 'Run VRAP with selected file and NRuns')
-                       ),
+      fluidRow(
+        column(
+          2*COLWIDTH,
+          radioButtons(
+            'NRuns',
+            'Step 2: Choose (or change) number of runs (NRuns) per simulation',
+            c('1'=1, '10'=10, '100'=100, '1000'=1000, 'Use .rav NRuns' = -1),
+            selected=-1, inline=TRUE)
+          )
+      ),
       tags$hr(),
-      selectInput( "file2", "Download the example .rav files:", EXAMPLES),
-      downloadButton('downloadExample', 'Download Example File'),
+      fluidRow(
+        column(
+          2*COLWIDTH,
+          conditionalPanel(
+            condition="!output.fileselected",
+            strong("Step 3: Run VRAP."),
+            HTML("&nbsp;&nbsp;<em>Button appears after step 1 completed</em>.")
+          ),
+          conditionalPanel(
+            "output.fileselected",
+            fluidRow(
+              column(
+                2,
+                div(id="runvrapdiv", strong("Step 3: Run VRAP."))
+              ),
+              column(
+                3,
+                htmlOutput(outputId="runbutton")
+              )
+            )
+          )
+        )
+      ),
+      tags$hr(),
+      fluidRow(
+        column(
+          3,
+          selectInput( "file2", "Download the example .rav files:", EXAMPLES)
+        ),
+        column(
+          3,
+          div(id="exdlspacer",HTML("&nbsp;")),
+          downloadButton('downloadExample', 'Download Example File')
+        )
+      ),
       tags$br(),
       tags$br(),
       tags$br()
+    ),
+    tabPanel(
+      title="Update Rav",
+      value="updateravtab",
+      conditionalPanel(
+        condition="output.fileselected",
+        wellPanel(
+          uiOutput("theraveditor"),
+          ## aceEditor(outputId="raveditor",
+          ##           cursorId="raveditorcursor",
+          ##           mode="text",
+          ##           height="600px"),
+          br(),
+          fluidRow(
+            div(
+              id="ravsavebutton",
+              actionButton(inputId="saveravedits",
+                           "Save edits")
+            )
+          )
+        )
+      ),
+      conditionalPanel(
+        condition="!output.fileselected",
+        includeHTML("html/help_ravedit.html")
+      )
     ),
     tabPanel(
       title="Results (.sum)",

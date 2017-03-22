@@ -1,7 +1,7 @@
 EXAMPLES <- list("Bev-Holt, no covariates, ER"="Bev-Holt-no-covariates-ER.rav", 
                  "Bev-Holt, with covariates, Pop"="Bev-Holt-covariates-Pop.rav",
-                 "Stilliguamish with covariates, Hockey Stick"="Stilliguamish-covariates-Hoc.rav",
-                 "Stilliguamish with covariates, Ricker"="Stilliguamish-covariates-Ric.rav")
+                 "Stillaguamish with covariates, Hockey Stick"="Stilliguamish-covariates-Hoc.rav",
+                 "Stillaguamish with covariates, Ricker"="Stilliguamish-covariates-Ric.rav")
 
 # EXAMPLES <- as.list(dir(DEMOFILESPATH))
 # names(EXAMPLES) <- sapply(dir(DEMOFILESPATH), function(x){str_split(x,"[.]rav"); x[[1]][1]})

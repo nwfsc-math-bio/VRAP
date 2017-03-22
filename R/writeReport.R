@@ -6,6 +6,11 @@
 #' @param show.file Whether to open the pdf after it is produced.
 #' @return Nothing. The pdf is made and saved.
 WriteReport=function(InFile=NULL, OutFileBase=NULL, show.file=FALSE){
+
+  
+  #make sure InFile is a full path name
+  InFile = normalizePath(InFile, winslash="/")
+
   #READ INPUT DATA AND CALCULATE AEQs
   #direct from .rav file or simple calculation from rav file inputs
   inputs=GetInput(InFile)

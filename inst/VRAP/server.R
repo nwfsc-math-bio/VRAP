@@ -221,10 +221,20 @@ shinyServer( function(input, output, session) {
               accept=c(".rav",".RAV"))
   })
 
-  clearOutputDirectory <- function() {
-    getBaseName(delete=TRUE)
-    unlink(file.path(getOutputDirectory(),"*"))
+  clearOutputDirectory <- function(clearall=TRUE) {
+    if (clearall) {
+      getBaseName(delete=TRUE)
+      unlink(file.path(getOutputDirectory(),"*"))
+    } else {
+      unlink(file.path(getOutputDirectory(),
+                       c("*.byr","*.esc","*.sum","*.pdf")))
+    }
   }
+
+  ## clearOutputDirectory <- function() {
+  ##   getBaseName(delete=TRUE)
+  ##   unlink(file.path(getOutputDirectory(),"*"))
+  ## }
 
   session$onSessionEnded(function(){
     unlink(file.path(getOutputDirectory()), recursive=TRUE)
@@ -298,7 +308,7 @@ shinyServer( function(input, output, session) {
         session$sendCustomMessage('setspinner','busy')
         session$sendCustomMessage('setwaitmsg', PROCESSINGMSG)
 
-        clearOutputDirectory()
+        clearOutputDirectory(clearall=FALSE)
         
         ## Note that just by virtue of checking the value
         ## of input$recalcButton, we're now going to get
@@ -391,7 +401,8 @@ shinyServer( function(input, output, session) {
              else {inFilePath <- inFile[1]}
            },
            demo = {
-             inFilePath <- file.path(DEMOFILESPATH,input$demofile)
+             ## inFilePath <- file.path(DEMOFILESPATH,input$demofile)
+             inFilePath <- inputfile()[1]
            },
            {
              ## default choice
@@ -466,7 +477,14 @@ shinyServer( function(input, output, session) {
                session$sendCustomMessage('setmsg', themsg)
              }))
     } else if (input$type == "demo") {
-      inFilePath = normalizePath(file.path(DEMOFILESPATH,input$demofile))
+      ## inFilePath = normalizePath(file.path(DEMOFILESPATH,input$demofile))
+
+      demoFile <- input$demofile
+      demoFilePath <- normalizePath(file.path(DEMOFILESPATH,demoFile))
+      demoCopy <- file.path(getOutputDirectory(), demoFile)
+      file.copy(demoFilePath,demoCopy)
+      inFileName <- demoFile
+      inFilePath <- demoCopy
     }
     
     if (is.null(inFilePath)) return(NULL)

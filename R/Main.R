@@ -12,15 +12,17 @@
 #' @param QET if the user wants to use something different than what is in the .rav file
 #' @param ECrit if the user wants to use something different than what is in the .rav file
 #' @param NewRavFileName A new .rav file is saved in case the user has changed any values from what is in the .rav file.
-#' @param forceNewRav Force use fo new rav file.  Needed for shiny app.
+#' @param forceNewRav Force use of new rav file.  Needed for shiny app.
 #' @param silent Whether to show progress bar.
 #' @param lcores Number of cores to use.  Default is non-parallel so lcores=1
+#' @param save.output.as.files  If TRUE (default), then .sum, .byr, .esc and .rav files are saved using OutFileBase.  If FALSE, no files are saved and only the list is output.
 #' @return list with output list from RunSims() and output time
 Main = function(InFile=NULL, OutFileBase=NULL, 
                 NRuns=-1, NYears=-1, Title=-1,
                 TargetStart=-1, TargetEnd=-1, TargetStep=-1,
                 ERecovery=-1, QET=-1, ECrit=-1, NewRavFileName="tmprav.rav",
-                forceNewRav=NULL, silent=FALSE, lcores=1){
+                forceNewRav=NULL, silent=FALSE, lcores=1,
+                save.output.as.files=TRUE){
 
   c1 = makeCluster(lcores)
   registerDoParallel(c1)
@@ -62,6 +64,7 @@ Main = function(InFile=NULL, OutFileBase=NULL,
   if(ECrit>0){ inputs$ECrit=ECrit; newrav=TRUE }
 
   ## override newrav if desired
+  if(!save.output.as.files) newrav <- FALSE
   newrav <- if(!is.null(forceNewRav) && !is.na(forceNewRav) &&
                  is.logical(forceNewRav)) {forceNewRav} else {newrav}
   
@@ -81,15 +84,15 @@ Main = function(InFile=NULL, OutFileBase=NULL,
   
   ## 'SAVE SUMMARY RESULTS .sum
   if(!silent) cat("\nSaving summary...\n")
-  SaveSummary(out$inputs, out$SummaryStats, out$staticvars)
+  if(save.output.as.files) SaveSummary(out$inputs, out$SummaryStats, out$staticvars)
   
   ## 'SAVE ESCAPEMENT DATA .esc
   if(!silent) cat("Saving escapement data...\n")
-  SaveEscpmntData(out$inputs, out$SummaryStats)
+  if(save.output.as.files) SaveEscpmntData(out$inputs, out$SummaryStats)
   
   ## 'SAVE BROOD YEAR EXPLOITATION RATE DATA .byr
   if(!silent) cat("Saving BYr year data...\n")
-  SaveBYrData(out$inputs, out$SummaryStats)
+  if(save.output.as.files) SaveBYrData(out$inputs, out$SummaryStats)
   
   outtm <- proc.time() - outtm
   

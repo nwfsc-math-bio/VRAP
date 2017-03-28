@@ -457,14 +457,21 @@ shinyServer( function(input, output, session) {
 
   output$runbutton <- renderUI({
     switches$editedravinput
-    uploadedFileInput()
-    demoFileInput()
+    inFilePath <- inputfile()[1]
+    runsString <- ""
+    if (!is.null(inFilePath)) {
+      tmpruns = as.numeric(input$NRuns)
+      if(tmpruns<0) tmpruns = VRAP:::GetInput(inFilePath)$NRuns
+      runsString <- paste0("=",tmpruns)
+    }
     if (usemodrav) {
       actionButton('recalcButton',
-                   HTML("<b>Run VRAP</b> with <b>edited parameters</b> and NRuns"))
+                   HTML(paste0("<b>Run VRAP</b> with <b>edited parameters</b> ",
+                               "and NRuns",runsString)))
     } else {
       actionButton('recalcButton',
-                   HTML("<b>Run VRAP</b> with selected file and NRuns"))
+                   HTML(paste0("<b>Run VRAP</b> with selected file and NRuns",
+                               runsString)))
     }
   })
 
@@ -505,8 +512,7 @@ shinyServer( function(input, output, session) {
     timesttext <- paste0(timest," second");
     if (timest != 1) {timesttext <- paste0(timesttext,"s")}
 
-    HTML(paste("Estimated time for", inputfile()[2],"and NRuns",
-               nrunstext, ":",
+    HTML(paste("Estimated time for", inputfile()[2], " : ",
                timesttext,"<br/><br/>"))
   })
 
@@ -613,6 +619,7 @@ shinyServer( function(input, output, session) {
     return(as.numeric(input$NRuns))
   })
 
+  
   ###########################################################
   ## RAV editing
   ###########################################################
@@ -830,7 +837,7 @@ shinyServer( function(input, output, session) {
   output$fileselected <- reactive({
     switch(inputtype(),
            upload = {return(inputFileExists())},
-           demo = {return(TRUE)}
+           demo = {return(!is.null(inputfile()[1]))}
            )
   })
   outputOptions(output, 'fileselected', suspendWhenHidden=FALSE)

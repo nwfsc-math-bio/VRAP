@@ -525,9 +525,13 @@ shinyServer( function(input, output, session) {
     inputtype()
     input$demofile
     usemodrav <<- FALSE
-    inFilePath <- normalizePath(file.path(DEMOFILESPATH,input$demofile))
-    inFileName <- input$demofile
-    list(inFileName,inFilePath)
+    if (input$demofile == "NOSEL") {
+      return(NULL)
+    } else {
+      inFilePath <- normalizePath(file.path(DEMOFILESPATH,input$demofile))
+      inFileName <- input$demofile
+      list(inFileName,inFilePath)
+    }
   })
 
   observe({
@@ -588,10 +592,14 @@ shinyServer( function(input, output, session) {
         
       } else if (inputtype() == "demo") {
         demoFile <- demoFileInput()
-        demoCopy <- file.path(getOutputDirectory(), demoFile[[1]])
-        file.copy(demoFile[[2]],demoCopy)
-        inFileName <- demoFile[[1]]
-        inFilePath <- demoCopy
+        if (is.null(demoFile)) {
+          inFilePath <- NULL  ## returns NULL below
+          } else {
+            demoCopy <- file.path(getOutputDirectory(), demoFile[[1]])
+            file.copy(demoFile[[2]],demoCopy)
+            inFileName <- demoFile[[1]]
+            inFilePath <- demoCopy
+          }
       }
       
       if (is.null(inFilePath)) { return(NULL) }

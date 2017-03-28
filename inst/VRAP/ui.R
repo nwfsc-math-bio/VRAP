@@ -17,6 +17,8 @@ if (!is.null(vrapVersion) && length(vrapVersion)>0) {
   appTitle <- paste0(appTitle,"</span")
 }
 
+examplesList <- c("Select a demo"="NOSEL",EXAMPLES)
+
 fluidPage(
   appFrameHeaderFixed(),
   titlePanel(HTML(appTitle),windowTitle="VRAP"),
@@ -70,7 +72,8 @@ fluidPage(
           ),
           conditionalPanel(
             "input.type == 'demo'",
-            selectInput("demofile", "Select demo file:", EXAMPLES))
+            selectInput("demofile", "Select demo file:", examplesList))
+            ## selectInput("demofile", "Select demo file:", EXAMPLES))
         )
       ),
       fluidRow(
@@ -116,7 +119,7 @@ fluidPage(
       tags$hr(),
       fluidRow(
         column(
-          3,
+          4,
           selectInput( "file2", "Download the example .rav files:", EXAMPLES)
         ),
         column(

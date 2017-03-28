@@ -133,16 +133,12 @@ fluidPage(
       tags$br()
     ),
     tabPanel(
-      title="Update Rav",
+      title="Edit Rav file",
       value="updateravtab",
       conditionalPanel(
         condition="output.fileselected",
         wellPanel(
           uiOutput("theraveditor"),
-          ## aceEditor(outputId="raveditor",
-          ##           cursorId="raveditorcursor",
-          ##           mode="text",
-          ##           height="600px"),
           br(),
           fluidRow(
             div(

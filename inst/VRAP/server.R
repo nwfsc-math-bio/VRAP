@@ -306,7 +306,7 @@ shinyServer( function(input, output, session) {
     }
     
     return(
-      list(
+      tagList(
         tags$hr(),
         tags$h4('Download VRAP output files'),
         selectInput("os", "Choose OS:",
@@ -317,7 +317,22 @@ shinyServer( function(input, output, session) {
         downloadButton('downloadByr', 'Byr File'),
         downloadButton('downloadEsc', 'Esc File'),
         downloadButton('downloadSum', 'Sum File'),
-        rav
+        rav,
+        tags$hr(),
+        fluidRow(
+          column(
+            4,
+            selectInput( "file2", "Download the example .rav files:", EXAMPLES)
+          ),
+          column(
+            3,
+            div(id="exdlspacer",HTML("&nbsp;")),
+            downloadButton('downloadExample', 'Download Example File')
+          )
+        ),
+        tags$br(),
+        tags$br(),
+        tags$br()
       )
     )
   }
@@ -799,27 +814,32 @@ shinyServer( function(input, output, session) {
 
   output$downloadByr <- downloadHandler(
     filename = function() {paste0(getBaseName(),".byr")},
-    content = function(file) {downloadHelper(file, ".byr")}
+    content = function(file) {downloadHelper(file, ".byr")},
+    contentType = "text/plain"
   )
   
   output$downloadSum <- downloadHandler(
     filename = function() {paste0(getBaseName(), ".sum")},
-    content = function(file) {downloadHelper(file, ".sum")}
+    content = function(file) {downloadHelper(file, ".sum")},
+    contentType = "text/plain"
   )
   
   output$downloadEsc <- downloadHandler(
     filename = function() {paste0(getBaseName(),".esc")},
-    content = function(file) {downloadHelper(file, ".esc")}
+    content = function(file) {downloadHelper(file, ".esc")},
+    contentType = "text/plain"
   )
 
   output$downloadRpt <- downloadHandler(
     filename = function() {paste0(getBaseName(), ".pdf")},
-    content = function(file) {file.copy(outputPath(".pdf"), file)}
+    content = function(file) {file.copy(outputPath(".pdf"), file)},
+    contentType = "application/pdf"
   )
   
   output$downloadRav <- downloadHandler(
     filename = function() {basename(getCurrentInput())},
-    content = function(file) {file.copy(getCurrentInput(), file)}
+    content = function(file) {file.copy(getCurrentInput(), file)},
+    contentType = "text/plain"
   )
   
   output$downloadExample <- downloadHandler(

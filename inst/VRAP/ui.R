@@ -116,18 +116,18 @@ fluidPage(
           )
         )
       ),
-      tags$hr(),
-      fluidRow(
-        column(
-          4,
-          selectInput( "file2", "Download the example .rav files:", EXAMPLES)
-        ),
-        column(
-          3,
-          div(id="exdlspacer",HTML("&nbsp;")),
-          downloadButton('downloadExample', 'Download Example File')
-        )
-      ),
+      ## tags$hr(),
+      ## fluidRow(
+      ##   column(
+      ##     4,
+      ##     selectInput( "file2", "Download the example .rav files:", EXAMPLES)
+      ##   ),
+      ##   column(
+      ##     3,
+      ##     div(id="exdlspacer",HTML("&nbsp;")),
+      ##     downloadButton('downloadExample', 'Download Example File')
+      ##   )
+      ## ),
       tags$br(),
       tags$br(),
       tags$br()

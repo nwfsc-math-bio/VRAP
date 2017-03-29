@@ -844,7 +844,8 @@ shinyServer( function(input, output, session) {
   
   output$downloadExample <- downloadHandler(
     filename = function() {"example.rav" },
-    content = function(file) {file.copy(file.path(DEMOFILESPATH,input$file2),file)}
+    content = function(file) {file.copy(file.path(DEMOFILESPATH,input$file2),file)},
+    contentType = "text/plain"
   )
   
   ###########################################################

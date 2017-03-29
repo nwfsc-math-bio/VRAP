@@ -82,10 +82,12 @@ Main = function(InFile=NULL, OutFileBase=NULL,
   
   outtm <- proc.time()
   
+  stopCluster(c1)
+  
   ## 'SAVE SUMMARY RESULTS .sum
   if(!silent) cat("\nSaving summary...\n")
   if(save.output.as.files) SaveSummary(out$inputs, out$SummaryStats, out$staticvars)
-  
+
   ## 'SAVE ESCAPEMENT DATA .esc
   if(!silent) cat("Saving escapement data...\n")
   if(save.output.as.files) SaveEscpmntData(out$inputs, out$SummaryStats)
@@ -96,7 +98,6 @@ Main = function(InFile=NULL, OutFileBase=NULL,
   
   outtm <- proc.time() - outtm
   
-  stopCluster(c1)
   
   return(c(out,output.time=outtm[3]))
 }

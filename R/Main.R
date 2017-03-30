@@ -24,9 +24,6 @@ Main = function(InFile=NULL, OutFileBase=NULL,
                 forceNewRav=NULL, silent=FALSE, lcores=1,
                 save.output.as.files=TRUE){
 
-  c1 = makeCluster(lcores)
-  registerDoParallel(c1)
-  
   ## if not called with input file, then user is prompted to input one
   if(is.null(InFile)) InFile = file.choose()
   if(!file.exists(InFile)) stop("Specified input file does not exist.")
@@ -78,14 +75,18 @@ Main = function(InFile=NULL, OutFileBase=NULL,
   ## add the output file names to the inputs
   inputs = SetOutFileNames(OutFileBase, inputs)
   
+  c1 = makeCluster(lcores, outfile = NULL)
+  registerDoParallel(c1)
+
   out=RunSims(inputs, silent)
   
+  stopCluster(c1)
+
   outtm <- proc.time()
   
-  stopCluster(c1)
   
   ## 'SAVE SUMMARY RESULTS .sum
-  if(!silent) cat("\nSaving summary...\n")
+  if(!silent) cat("Saving summary...\n")
   if(save.output.as.files) SaveSummary(out$inputs, out$SummaryStats, out$staticvars)
 
   ## 'SAVE ESCAPEMENT DATA .esc

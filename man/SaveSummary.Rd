@@ -15,8 +15,6 @@ SaveSummary(inputs, SummaryStats, staticvars)
 }
 \value{
 Nothing.  Writes file.
-PRINT HEADER INFORMATION
-njs MxR adjusted for average environmental conditions
 }
 \description{
 Write the .esc output file

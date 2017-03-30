@@ -8,7 +8,7 @@ SaveSummary = function(inputs, SummaryStats, staticvars){
   
   file = inputs$OutFileSum;
   output=""
-  #'PRINT HEADER INFORMATION
+  # PRINT HEADER INFORMATION
   output=c(output, format(paste("RAPVIABILITY (R) Version ", packageVersion("VRAP")),width=54), "Date:", format(Sys.Date()),"\n");
   output=c(output, format("Title:",width=14), inputs$Title, "\n");
   output=c(output, format("Input File:",width=19), inputs$InFile, "\n");
@@ -210,7 +210,7 @@ SaveSummary = function(inputs, SummaryStats, staticvars){
     output=c(output, format(round(SummaryStats$AvgEscpmnt[BufNum, inputs$NYears]),nsmall=0,width=max(6,cwid10)));  
     
     if(inputs$StepFunc == "POP"){
-      #' njs MxR adjusted for average environmental conditions
+      # njs MxR adjusted for average environmental conditions
       if(inputs$SRType %in% c("HOC2", "HOC3", "HOC4")){
         output=c(output, " ", format(round(PBff * inputs$BSRb * inputs$AveEnv * (1 - inputs$TargetU[inputs$BaseRegime])),nsmall=0,width=max(7,cwid11)));  
       }

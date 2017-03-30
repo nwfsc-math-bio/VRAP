@@ -5,25 +5,25 @@
 #' @return  list with inputs, SummaryStats, staticvars, comp.time.
 RunSims = function(inputs, silent) {
 
-  ## Set up list that will hold static computed variables.
-  ## These don't change with each rep or buffer
+  # Set up list that will hold static computed variables.
+  # These don't change with each rep or buffer
   staticvars=list()
 
-  #'CALCULATE AEQs
-  #'staticvars are computed variables; they are static
+  # CALCULATE AEQs
+  # staticvars are computed variables; they are static
   staticvars$AEQ = AEQcalc(inputs) 
   
-  #'COMPUTE FACTOR TO TRANSLATE AEQ RECRUITMENT TO AGE 1
+  # COMPUTE FACTOR TO TRANSLATE AEQ RECRUITMENT TO AGE 1
   staticvars$RecruitsAtAge1 = Recruits(inputs)
 
   ptm <- proc.time()
-  ##----------------- PROGRAM EXECUTION SECTION --------------------------------
+  #----------------- PROGRAM EXECUTION SECTION --------------------------------
   
   Buffer = inputs$BufferStart
-  ##Set up the SummaryStats
+  # Set up the SummaryStats
   SummaryStats = SetupSummaryStats(inputs)
 
-  ##Set up the YearStats
+  # Set up the YearStats
   YearStats = list()
   YearStats$AEQMort = matrix(0, inputs$NYears, inputs$MaxAge)
   YearStats$Escpmnt = matrix(0, inputs$NYears, inputs$MaxAge)
@@ -33,8 +33,8 @@ RunSims = function(inputs, silent) {
   YearStats$RanFlow = matrix(NA, inputs$NYears)
   YearStats$RanMarine = matrix(NA, inputs$NYears)
 
-  ## function combines gathered individual loop results
-  ## re-formatted into SummaryStats when Buffer loops are done
+  # function combines gathered individual loop results
+  # re-formatted into SummaryStats when Buffer loops are done
   stats.combine <- function(s1, s2) {
     bn <- s2$bufnum
     scalars <- list("FirstRanMarine","FirstRanFlow")
@@ -56,38 +56,44 @@ RunSims = function(inputs, silent) {
     return(s1)
   }
   
-  if(!silent) prev=progressBar()
+  if(!silent){ #set up a progress bar; does not work with doParallel yet
+    pb <- txtProgressBar(max = inputs$BufMax)
+    progress <- function(n) setTxtProgressBar(pb, n)
+    #opts <- list(progress=progress); when working uncomment this and close(pb) below
+    opts <- list()
+    cat("\nBeginning simulations...\n")
+  }else{ opts <- list() }
   BufNum <- NULL
-  ## For each ER or Pop Cap level, go loop through NRuns,
-  ## and for each NRun, loop through Year
-  loopres <- foreach(BufNum = 1:inputs$BufMax, .combine=stats.combine) %dopar% {
-    ## set ER level or Pop Cap (SRb) level
-
+  # For each ER or Pop Cap level, go loop through NRuns,
+  # and for each NRun, loop through Year
+  loopres <- foreach(BufNum = 1:inputs$BufMax, .combine=stats.combine,
+                     .options.snow = opts) %dopar% {
+    # set ER level or Pop Cap (SRb) level
+    # for(BufNum in 1:inputs$BufMax){ #in case this needs debugging use this code
+    # setTxtProgressBar(pb, BufNum) #this will make the progress bar
     Buffer = inputs$BufferStart + (BufNum - 1) * inputs$BufferStep
 
-    ## INITIALIZE BUFFER SPECIFIC PARAMETERS AND ARRAYS
+    # INITIALIZE BUFFER SPECIFIC PARAMETERS AND ARRAYS
     out=BufferInit(Buffer, inputs)
     inputs$DR=out$DR
-    ## This is the ER or Pop Cap to use for this loop
-    ## used in CompEscpmnt
+    # This is the ER or Pop Cap to use for this loop
+    # used in CompEscpmnt
     BufTargetU = out$BufTargetU
-    ## This is the SRb to use when StepFunc = "POP";
-    ## not used when StepFunc = "ER"
-    ## used in CompRecruits and CompStats
+    # This is the SRb to use when StepFunc = "POP";
+    # not used when StepFunc = "ER"
+    # used in CompRecruits and CompStats
     BufSRb = out$BufSRb
     
     ## REPETITION LOOP
     for(Rep in 1:inputs$NRuns){
-      if(!silent) prev=progressBar((inputs$NRuns*(BufNum-1)+Rep)/(inputs$BufMax*inputs$NRuns),prev)
-      
-      #'INITIALIZE REPETITION SPECIFIC PARAMETERS AND ARRAYS
-      #'repvar is a list of variables that change each year:
-      #'Cohort, LastRanError, LastRanFlow, LastRanMarine
-      #'These are updated with each year
-      #'starts Cohort at the init # at each age in the input file
-      #'Cohort seems to mean population #s at each age
-      #'YearStats is a list of variables that are saved for each year
-      #'SummaryStats passed in to fix first year Ran to be same across reps
+      # INITIALIZE REPETITION SPECIFIC PARAMETERS AND ARRAYS
+      # repvar is a list of variables that change each year:
+      # Cohort, LastRanError, LastRanFlow, LastRanMarine
+      # These are updated with each year
+      # starts Cohort at the init # at each age in the input file
+      # Cohort seems to mean population #s at each age
+      # YearStats is a list of variables that are saved for each year
+      # SummaryStats passed in to fix first year Ran to be same across reps
       repvars = RepInit(inputs)
       
       if(Rep == 1){
@@ -95,57 +101,58 @@ RunSims = function(inputs, silent) {
         SummaryStats$FirstRanFlow = repvars$LastRanFlow
       }
       
-      #'BEGIN Year LOOP
+      # BEGIN Year LOOP
       for(Year in 1:inputs$NYears){
                                         #Save this for Summary at end
         YearStats$RanMarine[Year] = repvars$LastRanMarine
         YearStats$RanFlow[Year] = repvars$LastRanFlow 
         
-        #'NATURAL MORTALITY PROCESS
-        #'Update Cohort (pop size) at Age with Natural Mortality
+        # NATURAL MORTALITY PROCESS
+        # Update Cohort (pop size) at Age with Natural Mortality
         repvars$Cohort =CompNatMort(inputs, repvars$Cohort)
         
-        #'COMPUTE ESCAPEMENT USING BASE LEVEL EXPLOITATION RATE
-        ## Escapment is spawners
+        # COMPUTE ESCAPEMENT USING BASE LEVEL EXPLOITATION RATE
+        # Escapment is spawners
         YearStats=CompEscpmnt(inputs$BaseRegime, Year, inputs, BufTargetU, repvars$Cohort, staticvars$AEQ, YearStats)
         repvars$TempCohort = YearStats$TempCohort
         
-        #'CHECK STOCK STATUS
-        #'Going to be a number between 1 and NumBreaks
+        # CHECK STOCK STATUS
+        # Going to be a number between 1 and NumBreaks
         Status = CompStockStatus(YearStats$TotAdultEscpmnt[Year], inputs)
         
-        #'ADJUST REGIME IF WARRANTED
+        # ADJUST REGIME IF WARRANTED
         if(Status != inputs$BaseRegime){
           YearStats=CompEscpmnt(Status, Year, inputs, BufTargetU, repvars$Cohort, staticvars$AEQ, YearStats)
           repvars$TempCohort = YearStats$TempCohort
         }
         
-        #'AGE COHORT
-        #'now update cohort (non-spawner pop size at age) for next year
-        #'using the updated "cohort" from CompEscpmnt
+        # AGE COHORT
+        # now update cohort (non-spawner pop size at age) for next year
+        # using the updated "cohort" from CompEscpmnt
         repvars$Cohort = CompAgeCohort(repvars$TempCohort, repvars$Cohort, inputs)
         
-        #'COMPUTE RECRUITS FROM ESCAPEMENT
-        #'Uses SR (Escpmnt to AEQRecruits) function with error added to that to get AEQRecruits from this years spawners (Escpmnt)
-        #'Needs to then translate that to age 1 indiv in pop (Cohort[1])
-        #'We know AEQRecruit.  How many Age 1 individuals does that translate to?  Age1 * (1- total fraction lost) = AEQRecruits
-        #'So Age1 = AEQRecruits/(1-total fraction lost)
-        #'Set Cohort[1], LastRanError, LastRanFlow, LastRanMarine
+        # COMPUTE RECRUITS FROM ESCAPEMENT
+        # Uses SR (Escpmnt to AEQRecruits) function with error added to that to get AEQRecruits from this years spawners (Escpmnt)
+        # Needs to then translate that to age 1 indiv in pop (Cohort[1])
+        # We know AEQRecruit.  How many Age 1 individuals does that translate to?  Age1 * (1- total fraction lost) = AEQRecruits
+        # So Age1 = AEQRecruits/(1-total fraction lost)
+        # Set Cohort[1], LastRanError, LastRanFlow, LastRanMarine
         repvars = CompRecruits(YearStats, Year, inputs, repvars, staticvars, BufSRb)
 
-        #'SAVE YEAR DATA
-        #'stores the year data that will be needed for the statistics at the end
+        # SAVE YEAR DATA
+        # stores the year data that will be needed for the statistics at the end
         YearStats=SaveYearData(Year, YearStats)
         
-      } ## for loop for Year
-      ## this cumulates some stats over each rep
+      } # for loop for Year
+      # this cumulates some stats over each rep
       SummaryStats= CompStatsEEH(BufNum, inputs, BufSRb, YearStats, SummaryStats)
-    } ##for loop for Rep
-    ## return list value for loop result combination
+    } # for loop for Rep
+    # return list value for loop result combination
     list(bufnum=BufNum, ss=SummaryStats)
-  } #for loop for BufNum
+  } # for loop for BufNum
+  if(!silent) #close(pb)
 
-  ## extract SummaryStats from complete loop results list
+  # extract SummaryStats from complete loop results list
   SummaryStats <- loopres$ss
   
   comp.time = proc.time() - ptm

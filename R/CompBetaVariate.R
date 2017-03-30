@@ -38,7 +38,7 @@
 CompBetaVariate = function(Alpha, Beta){
 #EEH: removed the no random variables option
 #  if(get("CONSTRUN", pkg_globals)){ #no random variables
-#     val = Alpha / (Alpha + Beta) #'expected value
+#     val = Alpha / (Alpha + Beta) #expected value
 #   }else{
     G1 = rgamma(1, Alpha, scale=1)
     G2 = rgamma(1, Beta, scale=1)

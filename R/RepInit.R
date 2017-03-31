@@ -9,13 +9,13 @@ RepInit = function(inputs){
 
   rtn.list$Cohort = inputs$CohortStart
   
-  # SET INITIAL SEED FOR AUTOCORRELATED RESIDUALS
+  #'SET INITIAL SEED FOR AUTOCORRELATED RESIDUALS
   if(inputs$SurvScale == "YES"){
     rtn.list$LastRanError = rnorm(1, 0, sd=sqrt(inputs$SRErrorB))
   }
   
-  # SET INITIAL VALUES FOR LAST RANMARINE AND RANFLOW
-  # EEH: VB code was misisng HOC3 and BEV3 from this
+  #'SET INITIAL VALUES FOR LAST RANMARINE AND RANFLOW
+  #'EEH: VB code was misisng HOC3 and BEV3 from this
   if(any(inputs$SRType==c("HOC3", "BEV3", "RIC3"))){
     if(inputs$GammaFlowA + inputs$GammaFlowB == 0){
       rtn.list$LastRanFlow = inputs$FlowAve

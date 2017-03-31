@@ -20,13 +20,13 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
   LastRanError = repvars$LastRanError
   LastRanMarine = repvars$LastRanMarine
   
-  # renaming TotEscpmnt to Escpmnt
+  #Horrid; renaming TotEscpmnt to Escpmnt
   if(inputs$EscChoice == "YES"){
     Escpmnt = YearStats$TotAdultEscpmnt[Year]
     }else{ Escpmnt = YearStats$TotEscpmnt[Year] }
   if(Escpmnt < 1){ Escpmnt = 0 }
   
-  # COMPUTE AEQ RECRUITMENT  
+  #'COMPUTE AEQ RECRUITMENT  
   if(inputs$SRType == "HOC2"){
     if(inputs$BSRa * Escpmnt > SRb){ 
                          AEQRecruits =  SRb 
@@ -84,14 +84,14 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     
     if(inputs$TrndCycF == "Cycle"){
       Mean = Cycle(inputs$TCF1, inputs$TCF2, inputs$TCF3, Year)
-      # should use TCF4 as scalar in place of FlowAve
+      #' should use TCF4 as scalar in place of FlowAve
       Var = (inputs$FlowCV * Mean)^2
       if(Var == 0){
         RanFlow = Mean
       }else{
         GammaFlowCyA = Mean * Mean / Var
         GammaFlowCyB = Var / Mean
-        # RanFlow = GammaSample(GammaFlowCyA, GammaFlowCyB)
+        #RanFlow = GammaSample(GammaFlowCyA, GammaFlowCyB)
         RanFlow = rgamma(1, GammaFlowCyA, scale=GammaFlowCyB)
       }
     }
@@ -100,8 +100,8 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     LastRanFlow = RanFlow
     
     if(inputs$CenterCov=="YES"){
-      # This is how DM also writes the effect of marine survival
-      # flow is log-transformed so this works since FlowAve is mean of log(flow)
+      #This is how DM also writes the effect of marine survival
+      #flow is log-transformed so this works since FlowAve is mean of log(flow)
       FWS = exp(inputs$BSRd * (RanFlow-inputs$logFlowMu))
     }else{
       FWS = exp(inputs$BSRd * RanFlow)
@@ -129,17 +129,17 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
       AEQRecruits = AEQRecruits * exp(RanError)
     }
     
-  }# end 3 parameter cases
+  }#end 3 parameter cases
   
   
   if(any(inputs$SRType==c("HOC4", "RIC4", "BEV4"))){
     
-    # Set Marine Surv Params
+    #Set Marine Surv Params
     if(inputs$TrndCycM == "Autoc"){
       if(inputs$GammaMarA + inputs$GammaMarB == 0){
         RanMarine = inputs$MarAve
       }else{
-        # RanMarine = GammaSample(inputs$GammaMarA, inputs$GammaMarB)
+        #RanMarine = GammaSample(inputs$GammaMarA, inputs$GammaMarB)
         RanMarine = rgamma(1, inputs$GammaMarA, scale=inputs$GammaMarB)
         RanMarine = Autocorrel(inputs$TCM1, LastRanMarine, RanMarine)
       }
@@ -156,7 +156,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
         }else{
           GammaMarTrA = Mean * Mean / Var
           GammaMarTrB = Var / Mean
-          # RanMarine = GammaSample(GammaMarTrA, GammaMarTrB)
+          #RanMarine = GammaSample(GammaMarTrA, GammaMarTrB)
           RanMarine = rgamma(1, GammaMarTrA, scale=GammaMarTrB)
         }
       }
@@ -164,14 +164,14 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     
     if(inputs$TrndCycM == "Cycle"){
       Mean = Cycle(inputs$TCM1, inputs$TCM2, inputs$TCM3, Year)
-      # should use TCF4 as scalar in place of MarAve      
+      #' should use TCF4 as scalar in place of MarAve      
       Var = (inputs$MarCV * Mean)^2
       if(Var == 0){
         RanMarine = inputs$MarAve
       }else{
         GammaMarCyA = Mean * Mean / Var
         GammaMarCyB = Var / Mean
-        # RanMarine = GammaSample(GammaMarCyA, GammaMarCyB)
+        #RanMarine = GammaSample(GammaMarCyA, GammaMarCyB)
         RanMarine = rgamma(1, GammaMarCyA, scale=GammaMarCyB)
       }
     }
@@ -179,20 +179,20 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     LastRanMarine = RanMarine
     
     if(inputs$CenterCov=="YES"){
-      # This is how DM writes the effect of marine survival
-      # log-transformed and centered
+      #This is how DM writes the effect of marine survival
+      #log-transformed and centered
       MS = exp(inputs$BSRc * (log(RanMarine)-inputs$logMSMu))
     }else{
       MS = RanMarine^inputs$BSRc
     }
     if(MS < 0) MS = 0
     
-    # Set the flow parameters
+    #Set the flow parameters
     if(inputs$TrndCycF =="Autoc"){
       if(inputs$GammaFlowA + inputs$GammaFlowB == 0){
         RanFlow = inputs$FlowAve
       }else{
-        # RanFlow = GammaSample(inputs$GammaFlowA, inputs$GammaFlowB)
+        #RanFlow = GammaSample(inputs$GammaFlowA, inputs$GammaFlowB)
         RanFlow = rgamma(1, inputs$GammaFlowA, scale=inputs$GammaFlowB)
         RanFlow = Autocorrel(inputs$TCF1, LastRanFlow, RanFlow)
       }
@@ -209,7 +209,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
         }else{
           GammaFlowTrA = Mean * Mean / Var
           GammaFlowTrB = Var / Mean
-          # RanFlow = GammaSample(GammaFlowTrA, GammaFlowTrB)
+          #RanFlow = GammaSample(GammaFlowTrA, GammaFlowTrB)
           RanFlow = rgamma(1, GammaFlowTrA, scale=GammaFlowTrB)
         }
       }
@@ -217,14 +217,14 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     
     if(inputs$TrndCycF =="Cycle"){
       Mean = Cycle(inputs$TCF1, inputs$TCF2, inputs$TCF3, Year)
-      # should use TCF4 as scalar in place of FlowAve
+      #' should use TCF4 as scalar in place of FlowAve
       Var = (inputs$FlowCV * Mean)^2
       if(Var == 0){
         RanFlow = inputs$FlowAve
       }else{
         GammaFlowCyA = Mean * Mean / Var
         GammaFlowCyB = Var / Mean
-        # RanFlow = GammaSample(GammaFlowCyA, GammaFlowCyB)
+        #RanFlow = GammaSample(GammaFlowCyA, GammaFlowCyB)
         RanFlow = rgamma(1, GammaFlowCyA, scale=GammaFlowCyB)
       }
     }
@@ -261,7 +261,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
       LastRanError = RanError
       AEQRecruits = AEQRecruits * exp(RanError)
     }
-  } # end param 4 cases
+  } #end param 4 cases
   
   if(inputs$depen == "YES" & Escpmnt < inputs$DL1 + 1){
     if(Escpmnt < inputs$DL2 + 1){ 
@@ -275,12 +275,12 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
   }
   
   
-  # COMPUTE RECRUITS that are age 1;
-  # RecruitsAtAge1 is from Recruits() and is "total fraction of age 1 ind that eventually return"
-  # AEQRecruits/RecruitsAtAge1 = Age 1 or Cohort[1]
+  #'COMPUTE RECRUITS that are age 1;
+  #'RecruitsAtAge1 is from Recruits() and is "total fraction of age 1 ind that eventually return"
+  #'AEQRecruits/RecruitsAtAge1 = Age 1 or Cohort[1]
   CohortAge1 = AEQRecruits / staticvars$RecruitsAtAge1
   
-  # ADD MARINE SURVIVAL IF STOCK RECRUIT FUNCTION IS SPAWNER TO SMOLT
+  #'ADD MARINE SURVIVAL IF STOCK RECRUIT FUNCTION IS SPAWNER TO SMOLT
   if(inputs$MarSurv == "YES"){
     BetaVariate = CompBetaVariate(inputs$BetaMarA, inputs$BetaMarB)
     CohortAge1 = CohortAge1 * BetaVariate

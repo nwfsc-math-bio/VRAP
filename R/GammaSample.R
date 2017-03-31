@@ -7,7 +7,7 @@
 GammaSample = function(Alpha, Beta){
   #EEH: removed the no random variables option
   # if(get("CONSTRUN", pkg_globals)){ #no random variables
-  #   val = Alpha * Beta #'expected value
+  #   val = Alpha * Beta # expected value
   # }else{
   val = rgamma(1, Alpha, scale=Beta)
   # }

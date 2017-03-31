@@ -272,7 +272,7 @@ GetInput = function(InFile){
     inputs$NatMort[Age] = readit(cline,1); cline=cline+1
   }    
   
-  #'INPUT MATURATION RATES BY AGE (AEQ will be calculated)
+  # INPUT MATURATION RATES BY AGE (AEQ will be calculated)
   inputs$MatRate = rep(0,inputs$MaxAge)
   for(Age in inputs$MinAge:inputs$MaxAge){
     inputs$MatRate[Age] = readit(cline,1); cline=cline+1

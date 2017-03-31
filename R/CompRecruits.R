@@ -26,7 +26,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     }else{ Escpmnt = YearStats$TotEscpmnt[Year] }
   if(Escpmnt < 1){ Escpmnt = 0 }
   
-  #'COMPUTE AEQ RECRUITMENT  
+  # COMPUTE AEQ RECRUITMENT  
   if(inputs$SRType == "HOC2"){
     if(inputs$BSRa * Escpmnt > SRb){ 
                          AEQRecruits =  SRb 
@@ -84,7 +84,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     
     if(inputs$TrndCycF == "Cycle"){
       Mean = Cycle(inputs$TCF1, inputs$TCF2, inputs$TCF3, Year)
-      #' should use TCF4 as scalar in place of FlowAve
+      #  should use TCF4 as scalar in place of FlowAve
       Var = (inputs$FlowCV * Mean)^2
       if(Var == 0){
         RanFlow = Mean
@@ -164,7 +164,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     
     if(inputs$TrndCycM == "Cycle"){
       Mean = Cycle(inputs$TCM1, inputs$TCM2, inputs$TCM3, Year)
-      #' should use TCF4 as scalar in place of MarAve      
+      #  should use TCF4 as scalar in place of MarAve      
       Var = (inputs$MarCV * Mean)^2
       if(Var == 0){
         RanMarine = inputs$MarAve
@@ -217,7 +217,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     
     if(inputs$TrndCycF =="Cycle"){
       Mean = Cycle(inputs$TCF1, inputs$TCF2, inputs$TCF3, Year)
-      #' should use TCF4 as scalar in place of FlowAve
+      #  should use TCF4 as scalar in place of FlowAve
       Var = (inputs$FlowCV * Mean)^2
       if(Var == 0){
         RanFlow = inputs$FlowAve
@@ -275,12 +275,12 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
   }
   
   
-  #'COMPUTE RECRUITS that are age 1;
-  #'RecruitsAtAge1 is from Recruits() and is "total fraction of age 1 ind that eventually return"
-  #'AEQRecruits/RecruitsAtAge1 = Age 1 or Cohort[1]
+  # COMPUTE RECRUITS that are age 1;
+  # RecruitsAtAge1 is from Recruits() and is "total fraction of age 1 ind that eventually return"
+  # AEQRecruits/RecruitsAtAge1 = Age 1 or Cohort[1]
   CohortAge1 = AEQRecruits / staticvars$RecruitsAtAge1
   
-  #'ADD MARINE SURVIVAL IF STOCK RECRUIT FUNCTION IS SPAWNER TO SMOLT
+  # ADD MARINE SURVIVAL IF STOCK RECRUIT FUNCTION IS SPAWNER TO SMOLT
   if(inputs$MarSurv == "YES"){
     BetaVariate = CompBetaVariate(inputs$BetaMarA, inputs$BetaMarB)
     CohortAge1 = CohortAge1 * BetaVariate

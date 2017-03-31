@@ -56,13 +56,21 @@ RunSims = function(inputs, silent) {
     return(s1)
   }
   
-  if(!silent) prev=progressBar()
+  if(!silent){ #set up a progress bar; does not work with doParallel yet
+    pb <- txtProgressBar(max = inputs$BufMax)
+    progress <- function(n) setTxtProgressBar(pb, n)
+    #opts <- list(progress=progress); when working uncomment this and close(pb) below
+    opts <- list()
+    cat("\nBeginning simulations...\n")
+  }else{ opts <- list() }
   BufNum <- NULL
   # For each ER or Pop Cap level, go loop through NRuns,
   # and for each NRun, loop through Year
-  loopres <- foreach(BufNum = 1:inputs$BufMax, .combine=stats.combine) %dopar% {
+  loopres <- foreach(BufNum = 1:inputs$BufMax, .combine=stats.combine, .options.snow = opts) %dopar% {
     # set ER level or Pop Cap (SRb) level
-
+    # for(BufNum in 1:inputs$BufMax){ #in case this needs debugging use this code
+    # setTxtProgressBar(pb, BufNum) #this will make the progress bar
+    
     Buffer = inputs$BufferStart + (BufNum - 1) * inputs$BufferStep
 
     # INITIALIZE BUFFER SPECIFIC PARAMETERS AND ARRAYS
@@ -78,8 +86,6 @@ RunSims = function(inputs, silent) {
     
     # REPETITION LOOP
     for(Rep in 1:inputs$NRuns){
-      if(!silent) prev=progressBar((inputs$NRuns*(BufNum-1)+Rep)/(inputs$BufMax*inputs$NRuns),prev)
-      
       # INITIALIZE REPETITION SPECIFIC PARAMETERS AND ARRAYS
       # repvar is a list of variables that change each year:
       # Cohort, LastRanError, LastRanFlow, LastRanMarine
@@ -144,7 +150,7 @@ RunSims = function(inputs, silent) {
     # return list value for loop result combination
     list(bufnum=BufNum, ss=SummaryStats)
   } # for loop for BufNum
-
+  if(!silent){ close(pb) }
   # extract SummaryStats from complete loop results list
   SummaryStats <- loopres$ss
   

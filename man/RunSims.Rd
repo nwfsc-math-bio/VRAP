@@ -4,7 +4,7 @@
 \alias{RunSims}
 \title{RunSims}
 \usage{
-RunSims(inputs, silent)
+RunSims(inputs, silent, parallel.backend = "doParallel")
 }
 \arguments{
 \item{inputs}{Inputs from .rav file}

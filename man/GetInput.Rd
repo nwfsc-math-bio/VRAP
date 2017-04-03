@@ -11,7 +11,6 @@ GetInput(InFile)
 }
 \value{
 Returns the list of all inputs
-INPUT MATURATION RATES BY AGE (AEQ will be calculated)
 }
 \description{
 Read in a .rav file and assign all the variables

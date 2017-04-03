@@ -3,7 +3,7 @@
 #' @param inputs Inputs from .rav file
 #' @param silent Whether to show progress bar
 #' @return  list with inputs, SummaryStats, staticvars, comp.time.
-RunSims = function(inputs, silent) {
+RunSims = function(inputs, silent, parallel.backend="doParallel") {
 
   # Set up list that will hold static computed variables.
   # These don't change with each rep or buffer
@@ -57,11 +57,11 @@ RunSims = function(inputs, silent) {
   }
   
   if(!silent){ #set up a progress bar; does not work with doParallel yet
+    cat("\nBeginning simulations...\n")
     pb <- txtProgressBar(max = inputs$BufMax)
     progress <- function(n) setTxtProgressBar(pb, n)
-    #opts <- list(progress=progress); when working uncomment this and close(pb) below
     opts <- list()
-    cat("\nBeginning simulations...\n")
+    if(parallel.backend=="doSNOW") opts <- list(progress=progress)
   }else{ opts <- list() }
   BufNum <- NULL
   # For each ER or Pop Cap level, go loop through NRuns,

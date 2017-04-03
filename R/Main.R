@@ -15,13 +15,14 @@
 #' @param forceNewRav Force use of new rav file.  Needed for shiny app.
 #' @param silent Whether to show progress bar.
 #' @param lcores Number of cores to use.  Default is non-parallel so lcores=1
+#' @param parallel.backend doParallel or doSNOW.  The latter allows the progress bar to appear.
 #' @param save.output.as.files  If TRUE (default), then .sum, .byr, .esc and .rav files are saved using OutFileBase.  If FALSE, no files are saved and only the list is output.
 #' @return list with output list from RunSims() and output time
 Main = function(InFile=NULL, OutFileBase=NULL, 
                 NRuns=-1, NYears=-1, Title=-1,
                 TargetStart=-1, TargetEnd=-1, TargetStep=-1,
                 ERecovery=-1, QET=-1, ECrit=-1, NewRavFileName="tmprav.rav",
-                forceNewRav=NULL, silent=FALSE, lcores=1,
+                forceNewRav=NULL, silent=FALSE, lcores=1, parallel.backend="doParallel",
                 save.output.as.files=TRUE){
 
   ## if not called with input file, then user is prompted to input one
@@ -38,6 +39,7 @@ Main = function(InFile=NULL, OutFileBase=NULL,
       OutFileBase=InFileBase;
     }
   }
+  if(!parallel.backend %in% c("doParallel","doSNOW")) stop("parallel.backend must be doParallel or doSNOW (in quotes)")
   
   
   ## Two lists will be passed in and out of functions
@@ -76,9 +78,10 @@ Main = function(InFile=NULL, OutFileBase=NULL,
   inputs = SetOutFileNames(OutFileBase, inputs)
   
   c1 = makeCluster(lcores, outfile = NULL)
-  registerDoParallel(c1)
-
-  out=RunSims(inputs, silent)
+  if(parallel.backend=="doParallel") registerDoParallel(c1)
+  if(parallel.backend=="doSNOW") registerDoSNOW(c1)
+  
+  out=RunSims(inputs, silent, parallel.backend=parallel.backend)
   
   stopCluster(c1)
 

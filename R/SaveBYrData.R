@@ -7,7 +7,12 @@ SaveBYrData = function(inputs, SummaryStats){
 
 file = inputs$OutFileByr
 
-output=""
+output=c("BROOD YEAR HR STATISTICS", "\n");
+output=c(output, "All statistics are averaged over repetitions", "\n");
+output=c(output, "                      ______Brood Yr HR______", "\n");
+output=c(output, "  TgtER     b Years     Min     Avg     Max", "\n");
+
+Byrs=-1:(inputs$NYears - inputs$MaxAge)
 
 BufNum = 0
 for(Buffer in seq(inputs$BufferStart,inputs$BufferEnd,inputs$BufferStep)){
@@ -33,7 +38,6 @@ if(inputs$StepFunc == "ER"){
 #   output=c(output, "\n"); 
 #     } #for loop for Byr
 
-Byrs=-1:(inputs$NYears - inputs$MaxAge)
 col1=format(round(inputs$TargetU[inputs$BaseRegime] * EBff,digits=2), nsmall=2,width=6)
 col2=format(round(inputs$BSRb * PBff),nsmall=0,width=7)
 col3=format(Byrs,nsmall=0,width=7)

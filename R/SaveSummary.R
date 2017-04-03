@@ -198,6 +198,7 @@ SaveSummary = function(inputs, SummaryStats, staticvars){
       EBff = Buffer
     }
     #Hard coded in space between columns so they cannot run into each other
+    #subtracted 1 off width to account for this
     output=c(output, format(round(inputs$BSRb * PBff),nsmall=0,width=7)," ");  
     output=c(output, format(round(inputs$TargetU[inputs$BaseRegime] * EBff, digits=2),nsmall=2,width=6)," ");  
     output=c(output, format(round(SummaryStats$AvgCaHR[BufNum], digits=3),nsmall=3,width=7)," ");  

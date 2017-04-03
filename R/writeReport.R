@@ -35,6 +35,7 @@ WriteReport=function(InFile=NULL, OutFileBase=NULL, show.file=FALSE){
   if(str_sub(output.file,-4)==".pdf") output.file=str_sub(inputs$OutFileReport,1,-5)
   pkgpath <- find.package("VRAP")
   if(inputs$StepFunc=="ER") path=file.path(pkgpath, "doc", "Report-knitr-ER.xRnw")  
+  if(inputs$StepFunc=="POP") path=file.path(pkgpath, "doc", "Report-knitr-Pop.xRnw")  
   knit2pdf(path, output=paste(output.file,".tex",sep=""), envir=sys.nframe(), quiet=TRUE)
   if(show.file) file.show(paste(output.file,".pdf",sep=""))
   

@@ -2,7 +2,8 @@
 export(
 Main,
 VRAP,
-ComputeRER
+ComputeRER,
+WriteReport
 )
 
 ## register S3 methods

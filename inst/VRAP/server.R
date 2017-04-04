@@ -399,22 +399,21 @@ shinyServer( function(input, output, session) {
                                      tmp$SummaryStats,
                                      tmp$staticvars)
 
-        if (tmp$inputs$StepFunc == "ER") {
-          ## create the report file
-          owd <- setwd(getOutputDirectory())
-          uld <- getUploadDirectory()
-          if (!is.null(uld)) {
-            tmpravPath <- file.path(uld,"tmprav.rav")
-            if (file.exists(tmpravPath)) {
-              file.rename(tmpravPath,
-                          file.path(getOutputDirectory(),"tmprav.rav"))}
-          }
-          VRAP:::WriteReport(file.path(getOutputDirectory(),"tmprav.rav"),
-                             getBaseName())
-            cleanupKnitr()
-          setwd(owd)
-          ## done with report file
+
+        ## create the report file
+        owd <- setwd(getOutputDirectory())
+        uld <- getUploadDirectory()
+        if (!is.null(uld)) {
+          tmpravPath <- file.path(uld,"tmprav.rav")
+          if (file.exists(tmpravPath)) {
+            file.rename(tmpravPath,
+                        file.path(getOutputDirectory(),"tmprav.rav"))}
         }
+        VRAP:::WriteReport(file.path(getOutputDirectory(),"tmprav.rav"),
+                           getBaseName())
+        cleanupKnitr()
+        setwd(owd)
+        ## done with report file
 
         ## adjust file name references in summary
         vrapFilenameFilter()

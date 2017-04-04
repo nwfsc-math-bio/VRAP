@@ -329,14 +329,12 @@ shinyServer( function(input, output, session) {
                                      tmp$SummaryStats,
                                      tmp$staticvars)
 
-        if (tmp$inputs$StepFunc == "ER") {
-          ## create the report file
-          owd <- setwd(getOutputDirectory())
-          VRAP:::WriteReport(inputfile()[1], getBaseName())
-          cleanupKnitr()
-          setwd(owd)
-          ## done with report file
-        }
+        ## create the report file
+        owd <- setwd(getOutputDirectory())
+        VRAP:::WriteReport(inputfile()[1], getBaseName())
+        cleanupKnitr()
+        setwd(owd)
+        ## done with report file
 
         ## adjust file name references in summary
         vrapFilenameFilter()

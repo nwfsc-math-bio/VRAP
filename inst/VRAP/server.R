@@ -344,12 +344,10 @@ shinyServer( function(input, output, session) {
           htmlize(getoutputfile(outputPath(".sum"))))
         
         switches$byrOutput <<- HTML(
-          htmlize(paste0(getoutputfile("html/byr_colheaders.txt"),
-                         getoutputfile(outputPath(".byr"))), 2))
+          htmlize(getoutputfile(outputPath(".byr")), 2))
 
         switches$escOutput <<- HTML(
-          htmlize(paste0(getoutputfile("html/esc_colheaders.txt"),
-                         getoutputfile(outputPath(".esc"))), 2))
+          htmlize(getoutputfile(outputPath(".esc")), 2))
 
         ## turn off the spinner, set statuses, and update the
         ## download controls to reflect files present

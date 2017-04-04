@@ -1,3 +1,0 @@
-  TgtER     b      brood   _____Harvest Rate______
-          param     year    min      avg      max 
-

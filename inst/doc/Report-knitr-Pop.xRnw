@@ -177,7 +177,7 @@ read.sum=function(filename,UEL=80,LEL=5){
   #use some smoothing
   x=col1; y=col8
   smoothingSpline = smooth.spline(x, y, spar=0.35)
-  x.range = seq(x[1]*0.75,x[length(x)]*1.25,1)
+  x.range = seq(x[1],x[length(x)],1)
   pred=predict(smoothingSpline, x.range)
   col1s=pred$x; uel=pred$y
   y=col7
@@ -186,11 +186,11 @@ read.sum=function(filename,UEL=80,LEL=5){
   lel=pred$y
 
   tmp=which(uel>=UEL)
-  if(length(tmp)==0){ col1.at.UEL=col1s[1]
-  }else{ col1.at.UEL=col1s[max(tmp)] } #greatest col1 (b) where Esc > UEL
+  if(length(tmp)==0){ val.at.UEL=col1s[1]
+  }else{ col1.at.UEL=col1s[min(tmp)] } #greatest col1 (b) where Esc > UEL
   tmp=which(lel<=LEL)
   if(length(tmp)==0){ col1.at.LEL=col1s[1]
-  }else{ col1.at.LEL=col1s[max(tmp)] }
+  }else{ col1.at.LEL=col1s[min(tmp)] }
   
   return(list(val.at.UEL=col1.at.UEL, val.at.LEL=col1.at.LEL, UEL=col8, LEL=col7, b=col1))
 }
@@ -202,7 +202,7 @@ read.sum=function(filename,UEL=80,LEL=5){
   #use some smoothing
   x=suminfo$b; y=suminfo$UEL
   smoothingSpline = smooth.spline(x, y, spar=0.35)
-  x.range = seq(x[1]*0.75,x[length(x)]*1.25,1)
+  x.range = seq(x[1],x[length(x)],1)
   pred=predict(smoothingSpline,x.range)
   xs=pred$x; uel=pred$y
   plot(xs,uel,

@@ -1,3 +1,0 @@
-  TgtER   b      Year  ___Escapement Rate___
-        param            Min     Avg     Max
-

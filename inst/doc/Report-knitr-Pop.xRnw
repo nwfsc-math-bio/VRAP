@@ -167,69 +167,75 @@ legend("topright",c("Pre-terminal","Mature"),bty="n",cex=.75,pch=c(1,2))
 #define a function to read in the summary file
 read.sum=function(filename,UEL=80,LEL=5){
 #number of columns is determined by first 5 lines which will not be long enough
-#set 1:20 and skip the title since that could be any length
-    a=read.delim(filename,strip.white=TRUE,header=FALSE,sep="",stringsAsFactors=FALSE,skip=5,col.names=paste("V",1:100,sep=""))
-    a=a[(which(a[,1]=="SUMMARY")+5):dim(a)[1],1:11]
-    a=apply(as.matrix(a),2,as.numeric)
-    tmp=which(a[,"V8"]>=UEL)
-    col7=a[,"V7"];col8=a[,"V8"]; col1=a[,"V1"];
+#set 1:100 and skip the title since that could be any length
+  a=read.delim(filename,strip.white=TRUE,header=FALSE,sep="",stringsAsFactors=FALSE,skip=5,col.names=paste("V",1:100,sep=""))
+  #the needed table starts 5 lines after SUMMARY
+  a=a[(which(a[,1]=="SUMMARY")+5):dim(a)[1],1:11]
+  a=apply(as.matrix(a),2,as.numeric)
+  col7=a[,"V7"];col8=a[,"V8"]; col1=a[,"V1"];
 
   #use some smoothing
   x=col1; y=col8
   smoothingSpline = smooth.spline(x, y, spar=0.35)
   x.range = seq(x[1],x[length(x)],1)
   pred=predict(smoothingSpline, x.range)
-  col1s=pred$x; uel=pred$y
+  smooth.x=pred$x; smooth.uel=pred$y
   y=col7
   smoothingSpline = smooth.spline(x, y, spar=0.35)
   pred=predict(smoothingSpline, x.range)
-  lel=pred$y
+  smooth.lel=pred$y
 
-  tmp=which(uel>=UEL)
-  if(length(tmp)==0){ val.at.UEL=col1s[1]
-  }else{ col1.at.UEL=col1s[min(tmp)] } #greatest col1 (b) where Esc > UEL
-  tmp=which(lel<=LEL)
-  if(length(tmp)==0){ col1.at.LEL=col1s[1]
-  }else{ col1.at.LEL=col1s[min(tmp)] }
+  tmp=which(smooth.uel>=UEL)
+  if(length(tmp)==0){ x.at.UEL=NA
+  }else{ x.at.UEL=smooth.x[min(tmp)] } 
+  #smallest col1 (b) where Esc > uel more than UEL frac of sims
+  tmp=which(smooth.lel<=LEL)
+  if(length(tmp)==0){ x.at.LEL=NA
+  }else{ x.at.LEL=smooth.x[min(tmp)] }
+  #smallest col1 (b) where Esc < lel less than LEL frac of sims
   
-  return(list(val.at.UEL=col1.at.UEL, val.at.LEL=col1.at.LEL, UEL=col8, LEL=col7, b=col1))
+  return(list(
+    x.at.UEL=x.at.UEL, x.at.LEL=x.at.LEL, 
+    sim.uel=col8, sim.lel=col7, sim.x=col1, 
+    smooth.x=smooth.x, smooth.uel=smooth.uel, smooth.lel=smooth.lel))
 }
-  UEL=80; LEL=5 # Thresholds to use
 
+  #Make plots of rer metrics versus b (capacity)
+  
+  UEL=80; LEL=5 # Thresholds to use
   suminfo=read.sum(inputs$OutFileSum, UEL=UEL, LEL=LEL)
   
   par(mfrow=c(2,1))
-  #use some smoothing
-  x=suminfo$b; y=suminfo$UEL
-  smoothingSpline = smooth.spline(x, y, spar=0.35)
-  x.range = seq(x[1],x[length(x)],1)
-  pred=predict(smoothingSpline,x.range)
-  xs=pred$x; uel=pred$y
-  plot(xs,uel,
+  #points from sim
+  x=suminfo$sim.x; y=suminfo$sim.uel
+  #points from smoothing
+  smooth.x=suminfo$smooth.x; smooth.y=suminfo$smooth.uel
+  plot(smooth.x, smooth.y,
     main=paste("Percent of simulations where geomean in assessment\nyears is above RET (",inputs$ERecovery,")",sep=""),
     type="l", lwd=2,
     ylab="% of simulations > RET", xlab="Population Capacity (b)",
     ylim=c(0,100),bty="n")
   points(x,y)
-  abline(v=suminfo$val.at.UEL)
+  abline(v=suminfo$x.at.UEL)
   text(
-    suminfo$val.at.UEL,ifelse(suminfo$val.at.UEL>0.8*max(x.range),70,95),
-    paste(UEL,"% = ",round(suminfo$val.at.UEL,digits=2),sep=""),
-    pos=ifelse(suminfo$val.at.UEL>0.8*max(x.range),2,4)) #to make sure the label doesn't go off plot
+    suminfo$x.at.UEL,ifelse(suminfo$x.at.UEL>0.8*max(smooth.x),70,95),
+    paste(UEL,"% = ",round(suminfo$x.at.UEL,digits=2),sep=""),
+    pos=ifelse(suminfo$x.at.UEL>0.8*max(smooth.x),2,4)) #to make sure the label doesn't go off plot
   
-  y=suminfo$LEL
-  smoothingSpline = smooth.spline(x, y, spar=0.35)
-  pred=predict(smoothingSpline,x.range)
-  xs=pred$x; lel=pred$y
-  plot(xs,lel,
+  #points from sim
+  y=suminfo$sim.lel
+  #points from smoothing
+  smooth.y=suminfo$smooth.lel
+  plot(smooth.x, smooth.y,
     main=paste("Fraction of Years that are below the\nCET (",inputs$ECrit,")",sep=""),
     type="l", lwd=2,
-    ylab="average % of years below LEL", xlab="Population Capacity (b)",
+    ylab="average % of years below CET", xlab="Population Capacity (b)",
     ylim=c(0,100), bty="n")
   points(x,y)
-  abline(v=suminfo$val.at.LEL)
-  text(suminfo$val.at.LEL,.95*max(x.range),paste(LEL,"% = ",round(suminfo$val.at.LEL,digits=2),sep=""),
-  pos=ifelse(suminfo$val.at.LEL>0.8*max(x.range),2,4)) #to make sure the label doesn't go off plot
+  abline(v=suminfo$x.at.LEL)
+  text(suminfo$x.at.LEL,ifelse(suminfo$x.at.LEL>0.8*max(smooth.x),70,95),
+  paste(LEL,"% = ",round(suminfo$x.at.LEL,digits=2),sep=""),
+  pos=ifelse(suminfo$x.at.LEL>0.8*max(smooth.x),2,4)) #to make sure the label doesn't go off plot
 @
 \end{center}
 \caption{Population Capacity (b) versus recovery metrics.  The line is a smoothed fit to the output at the population capacities 

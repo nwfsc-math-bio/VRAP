@@ -217,10 +217,12 @@ read.sum=function(filename,UEL=80,LEL=5){
     ylim=c(0,100),bty="n")
   points(x,y)
   abline(v=suminfo$x.at.UEL)
-  text(
-    suminfo$x.at.UEL,ifelse(suminfo$x.at.UEL>0.8*max(smooth.x),70,95),
-    paste(UEL,"% = ",round(suminfo$x.at.UEL,digits=2),sep=""),
-    pos=ifelse(suminfo$x.at.UEL>0.8*max(smooth.x),2,4)) #to make sure the label doesn't go off plot
+  if(!is.na(suminfo$x.at.UEL)){
+    text(
+      suminfo$x.at.UEL,ifelse(suminfo$x.at.UEL>0.8*max(smooth.x),70,95),
+      paste(UEL,"% = ",round(suminfo$x.at.UEL,digits=2),sep=""),
+      pos=ifelse(suminfo$x.at.UEL>0.8*max(smooth.x),2,4)) #to make sure the label doesn't go off plot
+    }
   
   #points from sim
   y=suminfo$sim.lel
@@ -233,13 +235,15 @@ read.sum=function(filename,UEL=80,LEL=5){
     ylim=c(0,100), bty="n")
   points(x,y)
   abline(v=suminfo$x.at.LEL)
-  text(suminfo$x.at.LEL,ifelse(suminfo$x.at.LEL>0.8*max(smooth.x),70,95),
-  paste(LEL,"% = ",round(suminfo$x.at.LEL,digits=2),sep=""),
-  pos=ifelse(suminfo$x.at.LEL>0.8*max(smooth.x),2,4)) #to make sure the label doesn't go off plot
+  if(!is.na(suminfo$x.at.LEL)){
+    text(suminfo$x.at.LEL,ifelse(suminfo$x.at.LEL>0.8*max(smooth.x),70,95),
+      paste(LEL,"% = ",round(suminfo$x.at.LEL,digits=2),sep=""),
+      pos=ifelse(suminfo$x.at.LEL>0.8*max(smooth.x),2,4)) #to make sure the label doesn't go off plot
+      }
 @
 \end{center}
 \caption{Population Capacity (b) versus recovery metrics.  The line is a smoothed fit to the output at the population capacities 
-used in the simulations (the dots). The vertical lines show the capacities at the critical levels: the capacity where the geometric mean escapment 
+used in the simulations (the dots). The vertical lines (if present) show the capacities at the critical levels: the capacity where the geometric mean escapment 
 in the assessment years is above RET in at least 80 percent of simulations and the capacity where CET is reached in no more than 5 percent of years.}
 \label{fig:uel-lel}
 \end{figure}

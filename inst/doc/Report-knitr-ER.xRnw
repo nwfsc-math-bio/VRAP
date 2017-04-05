@@ -121,9 +121,9 @@ cat("When the escapement is above ", inputs$EscpmntBreakPoint[1], ", the target 
 
 The simulations are used to compute different recovery metrics as a function of different target exploitation rates.  These metrics are shown in the table in the summary (.sum) output file in appendix B  and the two main metrics are shown in Figure 2.  
 \begin{itemize}
-\item The `\% runs extnct' column is the percentage of simulations where any escapement in the assessment years is below the quasi-extinction threshold + 1.  For this simulation, the assessment years are years \Sexpr{(inputs$NYears - (inputs$EndAv - 1))} to \Sexpr{inputs$NYears}, and the quasi-extinction threshold is \Sexpr{inputs$DL2}.
-\item The `\%yrs $<$LEL' column is the percentage of years that the escapement was below the  critical escapement threshold (CET). This is the number of years below the threshold divided by \Sexpr{inputs$NYears} years. The critical escapement threshold for the simulations was \Sexpr{inputs$ECrit}.
-\item The "\%run end$>$UEL" column is the percentage of simulations where the geometric mean escapement in the assessment years is above the rebuilding escapement threshold (RET).  For this simulation, the assessment years are years \Sexpr{(inputs$NYears - (inputs$EndAv - 1))} to \Sexpr{inputs$NYears}, and the rebuilding escapement threshold is \Sexpr{inputs$ERecovery}.
+\item The ``\% runs extnct" column is the percentage of simulations where any escapement in the assessment years is below the quasi-extinction threshold + 1.  For this simulation, the assessment years are years \Sexpr{(inputs$NYears - (inputs$EndAv - 1))} to \Sexpr{inputs$NYears}, and the quasi-extinction threshold is \Sexpr{inputs$DL2}.
+\item The ``\%yrs $<$LEL" column is the percentage of years that the escapement was below the  critical escapement threshold (CET). This is the number of years below the threshold divided by \Sexpr{inputs$NYears} years. The critical escapement threshold for the simulations was \Sexpr{inputs$ECrit}.
+\item The ``\%run end$>$UEL" column is the percentage of simulations where the geometric mean escapement in the assessment years is above the rebuilding escapement threshold (RET).  For this simulation, the assessment years are years \Sexpr{(inputs$NYears - (inputs$EndAv - 1))} to \Sexpr{inputs$NYears}, and the rebuilding escapement threshold is \Sexpr{inputs$ERecovery}.
 \end{itemize}
 
 
@@ -163,8 +163,8 @@ legend("topright",c("Pre-terminal","Mature"),bty="n",cex=.75,pch=c(1,2))
 #define a function to read in the summary file
 read.sum=function(filename,UEL=80,LEL=5){
 #number of columns is determined by first 5 lines which will not be long enough
-#set 1:20 and skip the title since that could be any length
-    a=read.delim(filename,strip.white=TRUE,header=FALSE,sep="",stringsAsFactors=FALSE,skip=5,col.names=paste("V",1:20,sep=""))
+#set 1:100 and skip the title since that could be any length
+    a=read.delim(filename,strip.white=TRUE,header=FALSE,sep="",stringsAsFactors=FALSE,skip=5,col.names=paste("V",1:100,sep=""))
     a=a[(which(a[,1]=="SUMMARY")+5):dim(a)[1],1:11]
     a=apply(as.matrix(a),2,as.numeric)
     tmp=which(a[,"V8"]>=UEL)
@@ -173,63 +173,66 @@ read.sum=function(filename,UEL=80,LEL=5){
   #use some smoothing
   x=col2; y=col8
   smoothingSpline = smooth.spline(x, y, spar=0.35)
-  pred=predict(smoothingSpline,seq(0,1,.01))
+  pred=predict(smoothingSpline,seq(min(x),max(x),.01))
   ers=pred$x; uel=pred$y
   y=col7
   smoothingSpline = smooth.spline(x, y, spar=0.35)
-  pred=predict(smoothingSpline,seq(0,1,.01))
+  pred=predict(smoothingSpline,seq(min(x),max(x),.01))
   lel=pred$y
 
   tmp=which(uel>=UEL)
-  if(length(tmp)==0){ ERUEL=ers[1]
+  if(length(tmp)==0){ ERUEL=NA
   }else{ ERUEL=ers[max(tmp)] } #greatest ER where Esc > UEL
   tmp=which(lel<=LEL)
-  if(length(tmp)==0){ ERLEL=ers[1]
+  if(length(tmp)==0){ ERLEL=NA
   }else{ ERLEL=ers[max(tmp)] }
   
-  return(list(ERUEL=ERUEL, ERLEL=ERLEL, UEL=col8, LEL=col7, ER=col2))
+  return(list(ERUEL=ERUEL, ERLEL=ERLEL, 
+              UEL=col8, LEL=col7, ER=col2,
+              smooth.x=ers, smooth.uel=uel, smooth.lel=lel))
 }
   UEL=80; LEL=5 # Thresholds to use
 
   suminfo=read.sum(inputs$OutFileSum, UEL=UEL, LEL=LEL)
   
   par(mfrow=c(2,1))
-  #use some smoothing
+  #points from sim
   x=suminfo$ER; y=suminfo$UEL
-  smoothingSpline = smooth.spline(x, y, spar=0.35)
-  pred=predict(smoothingSpline,seq(0,1,.01))
-  ers=pred$x; uel=pred$y
-  plot(ers,uel,
+  #points from smoothing
+  smooth.x=suminfo$smooth.x; smooth.uel=suminfo$smooth.uel
+  plot(smooth.x, smooth.uel,
     main=paste("Percent of simulations where geomean in assessment\nyears is above RET (",inputs$ERecovery,")",sep=""),
     type="l", lwd=2,
     ylab="% of simulations above RET", xlab="Target Exploitation Rate (ER)",
     ylim=c(0,100),bty="n")
   points(x,y)
   abline(v=suminfo$ERUEL)
-  text(
+  if(!is.na(suminfo$ERUEL)) text(
     suminfo$ERUEL,ifelse(suminfo$ERUEL>0.8,70,95),
     paste(UEL,"% = ",round(suminfo$ERUEL,digits=2),sep=""),
     pos=ifelse(suminfo$ERUEL>0.8,2,4))
   
+  #points from sim
   y=suminfo$LEL
-  smoothingSpline = smooth.spline(x, y, spar=0.35)
-  pred=predict(smoothingSpline,seq(0,1,.01))
-  lel=pred$y
-  plot(ers,lel,
+  #points from smoothing
+  smooth.lel=suminfo$smooth.lel
+  plot(smooth.x, smooth.lel,
     main=paste("Fraction of years that are below \nCET (",inputs$ECrit,")",sep=""),
     type="l", lwd=2,
     ylab="average % of years below CET", xlab="Target Exploitation Rate (ER)",
     ylim=c(0,100),bty="n")
   points(x,y)
   abline(v=suminfo$ERLEL)
-  text(suminfo$ERLEL,95,paste(LEL,"% = ",round(suminfo$ERLEL,digits=2),sep=""),
-  pos=ifelse(suminfo$ERLEL>0.8,2,4))
+  if(!is.na(suminfo$ERLEL)) text(
+    suminfo$ERLEL,95,
+    paste(LEL,"% = ",round(suminfo$ERLEL,digits=2),sep=""),
+    pos=ifelse(suminfo$ERLEL>0.8,2,4))
 @
 \end{center}
 \caption{Target exploitation rate (ER) versus recovery metrics.  The age-specific pre-terminal
  and mature harvest weights (Figure 1) are multiplied by a factor such that the actual exploitation
  rate (TotAEQMort / (TotAEQMort + TotEscpmnt)) is equal to the target (the ER on the x-axis). The line 
- is a smoothed fit to the output at ERs used in the simulations (the dots). The vertical lines show the ERs at 
+ is a smoothed fit to the output at ERs used in the simulations (the dots). The vertical lines (if present) show the ERs at 
  critical levels: the ER where geometric mean escapement in the assessment years is above RET at least 80 percent of simulations 
  and the ER where the CET is reached in no more than 5 percent of years.}
 \label{fig:uel-lel}

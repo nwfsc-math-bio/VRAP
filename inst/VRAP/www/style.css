@@ -7,7 +7,7 @@ div#spinnerhost {
     margin-top: 10px;
     margin-left: 10px;
     display:show;
-    background: rgba(230, 230, 230, .5);
+    background: rgba(230, 230, 230, .9);
     text-align: center;
     padding-top: 200px;
     padding-left: 30px;
@@ -26,7 +26,7 @@ div.msgdisplay {
     margin-top: 10px;
     margin-left: 10px;
     display:show;
-    background: rgba(230, 230, 230, .5);
+    background: rgba(230, 230, 230, .9);
     text-align: center;
     padding-top: 200px;
     padding-left: 30px;
@@ -34,6 +34,27 @@ div.msgdisplay {
     padding-right: 30px;
     border-radius: 5px;
     z-index: 500;
+}
+
+div#uploadravfilediv {
+    margin-bottom:5px;
+}
+
+div#exdlspacer {
+    margin-bottom:5px;
+}
+
+div#runvrapdiv {
+    margin-top:6px;
+}
+
+div#timest {
+    font-weight:bold;
+    font-style:italic;
+}
+
+div#ravsavebutton {
+    text-align:center
 }
 
 button.closemsg {
@@ -48,4 +69,13 @@ td.estSumBody {
 
 .tabtext {
     font-family:monospace;
+}
+
+.shiny-output-error-ravediterror {
+    color:red;
+    text-align:center
+}
+
+#msghost {
+    color: red;
 }

@@ -1,1 +1,1 @@
-shiny.version <- "VRAP 1.1.6"
+shiny.version <- "VRAP 1.1.9"

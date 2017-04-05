@@ -3,7 +3,7 @@ Type: Package
 Title: VRAP for RER and Viability Computations
 Version: 1.3.9
 Date: 2017-04-03
-Depends: R (>= 2.15.0), stringr, shiny, doParallel, knitr, doSNOW, utils
+Depends: R (>= 2.15.0), stringr, shiny, shinyAce, doParallel, knitr, doSNOW, utils
 Author: Eli Holmes, Norma Sands, Howard Coleman NOAA, Seattle, USA
 Maintainer: Elizabeth Holmes - NOAA Federal <eli.holmes@noaa.gov>
 Description: This is an optionally parallel R version of the VRAP program.

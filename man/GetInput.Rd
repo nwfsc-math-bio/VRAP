@@ -11,20 +11,6 @@ GetInput(InFile)
 }
 \value{
 Returns the list of all inputs
-GET TITLE FOR RUN
------ END OF RUN PARAMETERS SECTION ------------------------
-depensation with DL1=depensation esc; DL2 = QET; DR % of predicted R realized at QET
---------- END OF STOCK RECRUIT SECTION -----------------------------
-IDENTIFY WHICH LEVEL IS THE BASE REGIME
-INPUT BREAKPOINTS AND TARGET EXPLOITATION RATES
-INPUT PARAMETERS FOR MANAGEMENT ERROR
-Read in dummy values if management error is No
-INPUT STEP SIZE AND RANGE FOR TARGET EXPLOITATION RATES OR STARTING ESCAPEMENT
-INPUT NATURAL MORTALITY RATES
-INPUT MATURATION RATES BY AGE (AEQ will be calculated)
-INPUT PRETERMINAL AND MATURE EXPLOITATION RATES BY AGE
-These will be used to proportion target ER by age and fishery
-by def, PTU and MatU are 0 before MinAge
 }
 \description{
 Read in a .rav file and assign all the variables

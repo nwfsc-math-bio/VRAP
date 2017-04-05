@@ -23,17 +23,6 @@ CompEscpmnt(Regime, Year, inputs, BufTargetU, Cohort, AEQ, YearStats)
 }
 \value{
 Updated YearStats list for value of variables in Year
-INITIALIZE PARAMETERS, VARIABLES, AND ARRAYS
-SET EXPLOITATION RATE TARGET AFTER ADJUSTMENT FOR MANAGEMENT ERROR.
-SET INITIAL FISHERY SCALE To 1.0  UNLESS TARGET U=0
-COMPUTE PRETERMINAL MORTALITY AND UPDATE COHORT
-COMPUTE MATURE RUN AND UPDATE COHORT
-COMPUTE MATURE MORTALITY AND ESCAPEMENT
-MatU, MatMort, Escpmnt, MatRun are all 1:MaxAge vectors
-COMPUTE AEQ TOTAL MORTALITY EXPLOITATION RATE
-COMPARE ACTUAL AND TARGET; SCALE EXPLOITATION RATES IF NECESSARY
-if any of these met, exit
-Criteria 1: unclear why needed.  Criteria 2: target ER < 0. Criteria 3: extinct
 }
 \description{
 Compute escapement

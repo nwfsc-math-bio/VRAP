@@ -21,14 +21,6 @@ CompRecruits(YearStats, Year, inputs, repvars, staticvars, BufSRb)
 }
 \value{
 updated repvars list with: Cohort[1]=CohortAge1, LastRanFlow, LastRanError, LastRanMarine.
-COMPUTE AEQ RECRUITMENT  
-should use TCF4 as scalar in place of FlowAve
-should use TCF4 as scalar in place of MarAve      
-should use TCF4 as scalar in place of FlowAve
-COMPUTE RECRUITS that are age 1;
-RecruitsAtAge1 is from Recruits() and is "total fraction of age 1 ind that eventually return"
-AEQRecruits/RecruitsAtAge1 = Age 1 or Cohort[1]
-ADD MARINE SURVIVAL IF STOCK RECRUIT FUNCTION IS SPAWNER TO SMOLT
 }
 \description{
 Compute recruits

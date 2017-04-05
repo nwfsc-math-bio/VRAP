@@ -19,23 +19,6 @@ CompStatsEEH(BufNum, inputs, BufSRb, YearStats, SummaryStats)
 }
 \value{
 Updated SummaryStats list
-COMPUTE STATISTICS
-Sum up over all reps and divide by reps
-COMPUTE AVERAGE MORTALITY OVER REPETITIONS
-COMPUTE AVERAGE CALENDAR YEAR HARVEST RATE
-COMPUTE PROPORTION OF TIMES ESCAPEMENT WAS LESS THAN LOWER LEVEL
-add 1/NRuns because we want the fraction out of all runs
-FIND MINIMUM, MAXIMUM, AND AVERAGE ESCAPEMENT        
-COMPUTE PROPORTION OF TIMES ENDING ESCAPEMENT WENT BELOW QET (DL2) (depensation)
-divide by NRuns at end to get frac of reps below
-add 1/NRuns because we want the fraction out of all runs
-COMPUTE PROPORTION OF TIMES ENDING ESCAPEMENT EXCEEDED UPPER LEVEL
-add 1/NRuns because we want the fraction out of all runs
-COMPUTE BROOD YEAR HARVEST RATES
-AGE 2
-AGE 3
-AGE 4
-AGE 5
 }
 \description{
 Returns the statistics (calculated values) needed to produce the summary output file

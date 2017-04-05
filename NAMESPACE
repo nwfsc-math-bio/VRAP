@@ -2,7 +2,8 @@
 export(
 Main,
 VRAP,
-ComputeRER
+ComputeRER,
+WriteReport
 )
 
 ## register S3 methods
@@ -12,4 +13,4 @@ import(doParallel)
 import(stringr)
 importFrom(shiny, runApp)
 importFrom("stats","rgamma","rnorm")
-importFrom("utils", "packageVersion", "read.table")
+importFrom("utils", "packageVersion", "read.table", "txtProgressBar")

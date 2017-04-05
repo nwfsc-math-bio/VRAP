@@ -7,7 +7,8 @@
 Main(InFile = NULL, OutFileBase = NULL, NRuns = -1, NYears = -1,
   Title = -1, TargetStart = -1, TargetEnd = -1, TargetStep = -1,
   ERecovery = -1, QET = -1, ECrit = -1, NewRavFileName = "tmprav.rav",
-  forceNewRav = NULL, silent = FALSE, lcores = 1)
+  forceNewRav = NULL, silent = FALSE, lcores = 1,
+  parallel.backend = "doParallel", save.output.as.files = TRUE)
 }
 \arguments{
 \item{InFile}{The name of the .rav file}
@@ -34,11 +35,15 @@ Main(InFile = NULL, OutFileBase = NULL, NRuns = -1, NYears = -1,
 
 \item{NewRavFileName}{A new .rav file is saved in case the user has changed any values from what is in the .rav file.}
 
-\item{forceNewRav}{Force use fo new rav file.  Needed for shiny app.}
+\item{forceNewRav}{Force use of new rav file.  Needed for shiny app.}
 
 \item{silent}{Whether to show progress bar.}
 
 \item{lcores}{Number of cores to use.  Default is non-parallel so lcores=1}
+
+\item{parallel.backend}{doParallel or doSNOW.  The latter allows the progress bar to appear.}
+
+\item{save.output.as.files}{If TRUE (default), then .sum, .byr, .esc and .rav files are saved using OutFileBase.  If FALSE, no files are saved and only the list is output.}
 }
 \value{
 list with output list from RunSims() and output time

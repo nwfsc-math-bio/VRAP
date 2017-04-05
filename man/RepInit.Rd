@@ -7,8 +7,5 @@
 RepInit(inputs)
 }
 \arguments{
-\item{inputs}{Inputs from .rav file
-SET INITIAL SEED FOR AUTOCORRELATED RESIDUALS
-SET INITIAL VALUES FOR LAST RANMARINE AND RANFLOW
-EEH: VB code was misisng HOC3 and BEV3 from this}
+\item{inputs}{Inputs from .rav file}
 }

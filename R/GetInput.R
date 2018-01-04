@@ -212,6 +212,7 @@ GetInput = function(InFile){
   }else{
     inputs$GammaMgmtA = 0
     inputs$GammaMgmtB = 0
+    cline=cline+1
   }
   
   # ------------------ END OF FISHERY MANAGMENT INPUTS --------------------

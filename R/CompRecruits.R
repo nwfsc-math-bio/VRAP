@@ -23,16 +23,16 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
   #Horrid; renaming TotEscpmnt to Escpmnt
   if(inputs$EscChoice == "YES"){
     Escpmnt = YearStats$TotAdultEscpmnt[Year]
-    }else{ Escpmnt = YearStats$TotEscpmnt[Year] }
+  }else{ Escpmnt = YearStats$TotEscpmnt[Year] }
   if(Escpmnt < 1){ Escpmnt = 0 }
   
   # COMPUTE AEQ RECRUITMENT  
   if(inputs$SRType == "HOC2"){
     if(inputs$BSRa * Escpmnt > SRb){ 
-                         AEQRecruits =  SRb 
-                         }else{
-                           AEQRecruits = inputs$BSRa * Escpmnt
-                           }
+      AEQRecruits =  SRb 
+    }else{
+      AEQRecruits = inputs$BSRa * Escpmnt
+    }
   }
   
   if(inputs$SRType == "RIC2"){ 
@@ -107,7 +107,7 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
       FWS = exp(inputs$BSRd * RanFlow)
     }
     if(FWS < 0) FWS = 0  
-        
+    
     if(inputs$SRType == "HOC3")
       if(inputs$BSRa * Escpmnt > SRb){ r = SRb * FWS
       }else{ r = inputs$BSRa * Escpmnt * FWS }
@@ -238,10 +238,10 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
       FWS = exp(inputs$BSRd * RanFlow)
     }
     if(FWS < 0) FWS = 0  
-
+    
     if(inputs$SRType == "HOC4"){
       if(inputs$BSRa * Escpmnt > SRb){
-      r=SRb * MS * FWS
+        r=SRb * MS * FWS
       }else{ r = inputs$BSRa * Escpmnt * MS * FWS }
     }
     
@@ -263,15 +263,17 @@ CompRecruits = function(YearStats, Year, inputs, repvars, staticvars, BufSRb){
     }
   } #end param 4 cases
   
-  if(inputs$depen == "YES" & Escpmnt < inputs$DL1 + 1){
-    if(Escpmnt < inputs$DL2 + 1){ 
-       fac = Escpmnt / inputs$DL2 * inputs$DR
-       }else{
-       fac = ((1 - (inputs$DL1 - Escpmnt) / (inputs$DL1 - inputs$DL2)) * (1 - inputs$DR)) + inputs$DR }
-    
-    if(fac < 0) fac = 0
-    
-    AEQRecruits = fac * AEQRecruits
+  if(inputs$depen == "YES"){
+    if(Escpmnt < inputs$DL1 + 1){
+      if(Escpmnt < inputs$DL2 + 1){ 
+        fac = Escpmnt / inputs$DL2 * inputs$DR
+      }else{
+        fac = ((1 - (inputs$DL1 - Escpmnt) / (inputs$DL1 - inputs$DL2)) * (1 - inputs$DR)) + inputs$DR }
+      
+      if(fac < 0) fac = 0
+      
+      AEQRecruits = fac * AEQRecruits
+    }
   }
   
   

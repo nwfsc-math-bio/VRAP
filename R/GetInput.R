@@ -9,12 +9,12 @@ GetInput = function(InFile){
   
   inputs = list()
   inputs$InFile = InFile
-
+  
   readit = function(skip, n){ 
     x = read.table(InFile,nrows=1,sep=",",stringsAsFactors=FALSE,skip=skip)[1,n]
     if(is.character(x)) x = str_trim(x)
     x
-    }
+  }
   
   # GET TITLE FOR RUN
   inputs$Title = readit(0,1) #line 1
@@ -35,8 +35,8 @@ GetInput = function(InFile){
     inputs$logMSMu = readit(6,2) #line 6, the mean used for centering in DM: mean log MS
     inputs$logFlowMu = readit(6,3) #line 6, the mean used for centering in DM: mean log Flow. Note flow is logged.
   }
-    
-
+  
+  
   # ----- END OF RUN PARAMETERS SECTION ------------------------
   
   # ----- STOCK-RECRUIT SECTION -------------------------------
@@ -143,18 +143,17 @@ GetInput = function(InFile){
   inputs$depen = readit(15,1)
   inputs$depen = toupper(inputs$depen)
   if(!(inputs$depen %in% c("YES", "NO"))) stop("Unknown depensation selection (yes/no only)")
-  if(inputs$depen=="YES"){
-  inputs$DL1 = readit(16,1) 
-  inputs$DL2 = readit(16,2) 
+  inputs$DL1 = readit(16,1)
+  inputs$DL2 = readit(16,2)
   inputs$DR = readit(16,3)
-  }else{ # No depensation so DL1 = 0 and DR is 1
-    inputs$DL1 = 0
-    inputs$DR = 1
-    # user might still want to spec an extinction level
-    # if no QET entered, set to 0
-    inputs$DL2 = readit(16,2)
-    if(!is.numeric(inputs$DL2)) inputs$DL2 = 0
+  if(!is.numeric(inputs$DL1)) stop("rav line 17: DL1 should be numeric.")
+  if(!is.numeric(inputs$DL2)) stop("rav line 17: QET should be numeric.  Enter 0 if no quasi-extinction threshold (i.e. threshold = 0).")
+  if(!is.numeric(inputs$DR)) stop("rav line 17: DR (3rd param) should be numeric.")
+  if(inputs$depen=="NO"){
+    if(inputs$DL1 != 0) stop("rav line 17: if no depensation, DL1 should be 0.")
+    if(inputs$DR != 1) stop("rav line 17: if no depensation, DR (3rd param) should be 1.")
   }
+  if(inputs$DL2 >= inputs$cap) stop("rav line 17: QET should not be greater than capacity.")
   
   inputs$EscChoice = readit(17,1)
   inputs$EscChoice = toupper(inputs$EscChoice)

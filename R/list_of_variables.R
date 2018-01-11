@@ -14,7 +14,7 @@
 # CohortStart[Age]
 # ConvergeCrit
 # CenterCov; was Debugg
-# CorrMS
+# CorrMS; in rav, not used in code
 # depen
 # DL1
 # DL2

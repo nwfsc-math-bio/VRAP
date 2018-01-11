@@ -3,13 +3,18 @@
 #' @param InFile the name of the .rav file
 #' @return Returns the list of all inputs
 GetInput = function(InFile){
+  require(stringr)
   
   #The rav file has , as end of input/separator
   
   inputs = list()
   inputs$InFile = InFile
 
-  readit = function(skip, n){ read.table(InFile,nrows=1,sep=",",stringsAsFactors=FALSE,skip=skip)[1,n] }
+  readit = function(skip, n){ 
+    x = read.table(InFile,nrows=1,sep=",",stringsAsFactors=FALSE,skip=skip)[1,n]
+    if(is.character(x)) x = str_trim(x)
+    x
+    }
   
   # GET TITLE FOR RUN
   inputs$Title = readit(0,1) #line 1
@@ -137,10 +142,19 @@ GetInput = function(InFile){
   # depensation with DL1=depensation esc; DL2 = QET; DR % of predicted R realized at QET
   inputs$depen = readit(15,1)
   inputs$depen = toupper(inputs$depen)
-  if(!(inputs$depen %in% c("YES", "NO"))) stop("Unknown depensation selection (yes/no only)")  
+  if(!(inputs$depen %in% c("YES", "NO"))) stop("Unknown depensation selection (yes/no only)")
+  if(inputs$depen=="YES"){
   inputs$DL1 = readit(16,1) 
   inputs$DL2 = readit(16,2) 
   inputs$DR = readit(16,3)
+  }else{ # No depensation so DL1 = 0 and DR is 1
+    inputs$DL1 = 0
+    inputs$DR = 1
+    # user might still want to spec an extinction level
+    # if no QET entered, set to 0
+    inputs$DL2 = readit(16,2)
+    if(!is.numeric(inputs$DL2)) inputs$DL2 = 0
+  }
   
   inputs$EscChoice = readit(17,1)
   inputs$EscChoice = toupper(inputs$EscChoice)
@@ -164,7 +178,7 @@ GetInput = function(InFile){
   
   inputs$MarSurv = readit(20,1)
   inputs$MarSurv = toupper(inputs$MarSurv)
-  if(!(inputs$SurvScale %in% c("YES", "NO"))) stop("Unknown marine survival selection (yes/no only)")  
+  if(!(inputs$MarSurv %in% c("YES", "NO"))) stop("Unknown marine survival selection (yes/no only)")  
   if(inputs$MarSurv == "YES"){
     inputs$BetaMarA = readit(21,1) 
     inputs$BetaMarB = readit(21,2) 
@@ -177,7 +191,7 @@ GetInput = function(InFile){
   # INPUT THE NUMBER OF BREAKPOINTS AND DIMENSION ARRAYS
   # EEH: Per comments from Norma, I am not allowing more than 1 breakpoint
   # EEH: Norma indicated that this code was untested and examination of BufferInit.R
-  # EEH: Makes me uncertain what is really does if there is more than one breakpoint.
+  # EEH: makes me uncertain what it really does if there is more than one breakpoint.
   inputs$NumBreakPoints = readit(22,1)
   if(!(inputs$NumBreakPoints %in% c(0,1))) stop("Line 23 in rav file: only 0 or 1 breakpoints allowed for specification of the harvest regime.")  
   

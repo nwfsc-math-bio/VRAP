@@ -153,8 +153,7 @@ GetInput = function(InFile){
     if(inputs$DL1 != 0) stop("rav line 17: if no depensation, DL1 should be 0.")
     if(inputs$DR != 1) stop("rav line 17: if no depensation, DR (3rd param) should be 1.")
   }
-  if(inputs$DL2 >= inputs$cap) stop("rav line 17: QET should not be greater than capacity.")
-  
+
   inputs$EscChoice = readit(17,1)
   inputs$EscChoice = toupper(inputs$EscChoice)
   if(!(inputs$EscChoice %in% c("YES", "NO"))) stop("Unknown escapement choice selection (yes/no only)")  

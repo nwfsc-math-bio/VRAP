@@ -6,11 +6,6 @@
 #' @param PathName Path for the files
 #' @return Updated inputs list with full names for the output files
 SetOutFileNames = function(BaseName, inputs, PathName=NULL){
-  # NoExtensionName  'stores path and name, but not extension; in VB, not R
-  # Position         'position of final "\" in pathname; in VB, not R
-  # PathName         'string containing the path (including last "\")
-  # InFileNameOnly   'name (excl path) of input file; in VB, not R
-  
   # SET OUTPUT FILES
   inputs$OutFileSum = paste(PathName,BaseName,".sum",sep="")
   inputs$OutFileEsc = paste(PathName,BaseName,".esc",sep="")

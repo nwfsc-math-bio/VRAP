@@ -4,14 +4,13 @@
 #' @param silent Whether to show progress bar
 #' @return  list with inputs, SummaryStats, staticvars, comp.time.
 RunSims = function(inputs, silent, parallel.backend="doParallel") {
-
   # Set up list that will hold static computed variables.
   # These don't change with each rep or buffer
   staticvars=list()
 
   # CALCULATE AEQs
   # staticvars are computed variables; they are static
-  staticvars$AEQ = AEQcalc(inputs) 
+  staticvars$AEQ = AEQcalc(inputs)
   
   # COMPUTE FACTOR TO TRANSLATE AEQ RECRUITMENT TO AGE 1
   staticvars$RecruitsAtAge1 = Recruits(inputs)

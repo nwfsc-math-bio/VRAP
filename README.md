@@ -3,8 +3,8 @@ VRAP (Viability and Risk Assessment Procedure)
 
 To use
 
-* Online access to the model: [VRAP Shiny App](https://dataexplorer.northwestscience.fisheries.noaa.gov/nwc/VRAP/)
-* Install and run from the R command line:
+* Use the online access to the model GUI.  Nothing needs to be installed: [VRAP Shiny App](https://dataexplorer.northwestscience.fisheries.noaa.gov/nwc/VRAP/)
+* Use VRAP from the R command line.  Install R and the devtools package and then run the following from the R command line:
 
 ```
 library(devtools)

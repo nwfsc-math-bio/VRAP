@@ -8,7 +8,7 @@ To use
 
 ```
 library(devtools)
-install_github("eeholmes/VRAP")
+install_github("nwfsc-math-bio/VRAP")
 ```
     
 # Introduction
